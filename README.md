@@ -6,19 +6,19 @@ Kompleksowe repetytorium przygotowujące do egzaminu licencjackiego z informatyk
 
 ## 🟠 Status dokumentu
 
-- ✅ Repetytorium w pełni nadaje się do sensownej pracy.
-- ⚠️ Na ten moment brak materiału dotyczącego wstępu do uczenia maszynowego.
-- ℹ️ Mogą wystąpić nieznaczne rozbieżności z [aktualnymi wymaganiami do egzaminu][requirements]: podział na rozdziały jest inny, ale materiał jest w znacznej większości ten sam.
+Repetytorium **w pełni nadaje się** do sensownej pracy ✅ Nieliczne braki i potencjalne problemy są wyraźnie oznaczone w treści dokumentu. Niektóre rozdziały wymagają przeredagowania, ale merytorycznie są bez zarzutów.
+> [!WARNING]
+> Na ten moment brak materiału dotyczącego **wstępu do uczenia maszynowego**. Ponadto, mogą wystąpić **nieznaczne rozbieżności** z [aktualnymi wymaganiami do egzaminu][requirements]: podział na rozdziały jest inny, ale materiał jest w znacznej większości ten sam.
 
 Więcej informacji na temat aktualnego stanu rozdziałów, fragmentów do przeredagowania lub dopisania etc. znajduje się w zakładce z [wytycznymi dotyczącymi kontrybucji][contributions].
 
 ## 🛠️ Rozwój repetytorium
 
-Chcemy, aby ta publikacja stanowiła nasze wspólne dobro służące społeczności wydziału. Udostępniamy go publicznie, aby mógł poprzez dalsze dobrowolne kontrybucje być stale ulepszany i aktualizowany wraz z przyszłymi zmianami programowymi.
+Chcemy, aby ta publikacja stanowiła nasze wspólne dobro służące społeczności wydziału. Całość udostępniamy publicznie, aby mogła przez dalsze dobrowolne kontrybucje być stale ulepszana i aktualizowana wraz z przyszłymi zmianami programowymi.
 
 **Znalazłeś błąd w dokumencie?** ❌ Zgłoś go [w zakładce *Issues* w tym repozytorium][issues] (lub, jeszcze lepiej, [popraw go samodzielnie][contributions]!)
 
-**Chcesz przyczynić się do rozwoju repetytorium?** 💡 Spokojnie: nie musisz od razu pisać całego rozdziału! Każda (nawet najdrobniesza!) zmiana jest przydatna 🤝 Zapoznaj się z [wytycznymi dotyczącymi kontrybucji][contributions].
+**Chcesz przyczynić się do rozwoju repetytorium?** 📈 Spokojnie: nie musisz od razu pisać całego rozdziału! Każda (nawet najdrobniesza!) zmiana jest na wagę złota 🤝 Zapoznaj się z [wytycznymi dotyczącymi kontrybucji][contributions].
 
 ## 📃 Licencja
 
