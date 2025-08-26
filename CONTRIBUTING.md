@@ -13,6 +13,69 @@ Przy tworzeniu dokumentu trzymamy się dwóch najważniejszych, wysokopoziomowyc
 > [!TIP]
 > Jeszcze nie wszystkie rozdziały są w pełni dostosowane do drugiej wspomnianej tu zasady, ale najlepiej odzwierciedlają ją rozdziały z **rachunku prawdopodobieństwa, baz danych, programowania współbieżnego** i **matematyki dyskretnej**. Warto w pierwszej kolejności zapoznać się z nimi, żeby wyczuć styl językowy, o jakim tu wspominamy.
 
+## 🟠 Aktualny status dokumentu
+
+Pierwsza wersja repetytorium powstała w roku 2023 i bazuje na zagadnieniach programowych z tego właśnie roku. Od tego czasu studia licencjackie z informatyki na MIM-ie przeszły zmianę programową, a co za tym idzie - zmianę [zagadnień do egzaminu licencjackiego][requirements]:
+- W niemal każdym z przedmiotów **przeredagowana została lista zagadnień**. Czasem nie wpływa to w żaden sposób na materiał, który jest już zawarty w repetytorium, a czasem materiał nieco się zmienia - coś jest dodane, a coś usunięte.
+- Układ rozdziałów w repetytorium jest ściśle powiązany z przedmiotami obowiązkowymi, których dotyczy rozkład zagadnień programowych na egzaminie. Tutaj również zaszło kilka zmian:
+	- usunięto *Semantykę i weryfikację programów*, *Bezpieczeństwo systemów komputerowych* oraz *IPP i blok JNP*
+	- dodano *Wstęp do uczenia maszynowego*
+	- zmieniono *Systemy operacyjne* na *Architekturę komputerów i systemy operacyjne*
+
+> [!NOTE]
+> Ponieważ repetytorium jest skonstruowane pod klucz archiwalnych zadań z egzaminów licencjackich, powyższe zmiany nie wpływają znacząco na sens obecnie zawartej treści.
+
+### 💡 Lista potrzebnych zmian
+
+- Zmiana **podstawy programowej** na początku każdego rozdziału na [aktualną][requirements] oraz ewentualne dopisanie brakujących materiałów teoretycznych, które zostały dodane w nowych zagadnieniach do egzaminu.
+- **Spisanie zadań** z większej liczby [dostępnych egzaminów licencjackich][exams] do odpowiednich miejsc dokumentu (lista egzaminów, z których już spisano zadania, znajduje się poniżej).
+- **Utworzenie rozdziału *Wstęp do uczenia maszynowego***.
+- **Przeredagowanie wybranych rozdziałów** bądź ich części (szczegóły poniżej w sekcji *Status poszczególnych rozdziałów*).
+
+### Archiwalne zadania zawarte w dokumencie
+
+Jako że jedynie **niewielka część poprzednich egzaminów jest [oficjalnie udostępniana][exams]**, zadania zawarte obecnie w repetytorium bazują w większości na dobrowolnych pracach archiwizacyjnych poprzednich pokoleń studentów (spisujących zadania z pamięci po napisanym egzaminie). Poniższa lista zawiera egzaminy, z których zadania zostały spisane i posegregowane do odpowiednich miejsc w repetytorium:
+- **2023, częściowo** (patrz: notka poniżej)
+- **2022** (I termin)
+- **2021** (I termin)
+- **2020** (I termin)
+- **2020** (zdalny, na Moodle)
+- **2019** (I termin)
+- **2018** (I termin)
+- **2012** (I termin)
+- **2010** (I termin)
+- **2010** (próbny)
+
+Dodatkowo, zadania z I terminu z roku 2023 są umieszczone wyłącznie rozdziałach z **rachunku prawdopodobieństwa, baz danych, programowania współbieżnego** i **matematyki dyskretnej**. Pozostałe zadania należy spisać i umieścić je w odpowiednich miejscach w repetytorium.
+
+### Status poszczególnych rozdziałów
+
+Niektóre rozdziały wciąż wymagają większych lub mniejszych zmian. Mniejsze z nich zawarliśmy w dokumencie jako **przypisy redakcji** umieszczone w czerwonych ramkach lub jako czerwony tekst.
+
+> [!TIP]
+> Jeśli chcesz pomóc nam poprawić którąś z rzeczy oznaczą przypisem redakcji, w kodzie LaTeX-owym oznaczyliśmy każdą z nich komentarzem `% TODO` i ewentualnymi uwagami.
+
+Większe zmiany wypisaliśmy w poniższej tabeli. Kilka uwag:
+- tabela nie uwzględnia mniejszych zmian (są one oznaczone bezpośrednio w repetytorium jako przypisy redakcji oraz w plikach LaTeX-owych jako `% TODO`),
+- jako *docelowy styl językowy* będziemy odnosić się tu do stylu wspomnianego w sekcji *🗝️ Główne założenia*.
+
+| Rozdział | Status |
+| --- | --- |
+| Analiza matematyczna | 🔴 Część teoretyczną w większości należy poprawić, znacząco odbiega od docelowego stylu |
+| Geometria z algebrą liniową | 🟠 Sekcje 2.1-2.3 są napisane zgodnie z docelowym stylem językowym, pozostałe trzeba przeredagować |
+| Podstawy matematyki | 🟠 Materiał jest w porządku, potrzeba dodać sporo więcej przykładów i przeredagować całość do docelowego stylu |
+| Matematyka dyskretna | 🟢 Brak potrzebnych większych zmian |
+| Rachunek prawdopodobieństwa | 🟢 Brak potrzebnych większych zmian |
+| Algorytmy i struktury danych | 🔴 Część teoretyczna w dużej mierze chaotyczna, niezrozumiała i z niskiej jakości rysunkami, potrzebne gruntowne przeredagowanie |
+| Języki, automaty i obliczenia | 🟠 Materiał jest w porządku, potrzeba jedynie delikatnie przeredagować całość do docelowego stylu |
+| Bazy danych | 🟢 Brak potrzebnych większych zmian |
+| Programowanie współbieżne | 🟢 Brak potrzebnych większych zmian |
+| Metody numeryczne | 🔴 Część teoretyczna w dużej mierze chaotyczna, potrzebne gruntowne przeredagowanie |
+| Programowanie obiektowe | 🟠 Materiał jest w porządku, potrzeba dodać sporo więcej przykładów i delikatnie przeredagować całość do docelowego stylu |
+| Systemy operacyjne | 🟠 Materiał jest w porządku, potrzeba przeredagować całość do docelowego stylu |
+| Aplikacje WWW | 🟠 Materiał jest w porządku, potrzeba delikatnie przeredagować całość do docelowego stylu |
+| Sieci komputerowe | 🔴 Część teoretyczna w dużej mierze chaotyczna, potrzebne gruntowne przeredagowanie |
+
 ## 🗂️ Układ dokumentu
 
 - Każdy rozdział znajduje się w osobnym pliku w katalogu `rozdziały` (np. `rozdziały/analiza_matematyczna.tex`).
@@ -50,21 +113,22 @@ Przy tworzeniu dokumentu trzymamy się dwóch najważniejszych, wysokopoziomowyc
     ```
     
 - W razie potrzeby w treści sekcji można umieścić znacznik oddzielający **podsekcję** (`\subsection{Nazwa}`).
-	> [!CAUTION]
-	> Nie umieszczamy pierwszej podsekcji **tuż po** rozpoczęciu sekcji! Zamiast tego dobrą praktyką jest umieszczenie akapitu, który wprowadzi czytelnika do tematu, na przykład:
+> [!CAUTION]
+> Nie umieszczamy pierwszej podsekcji **tuż po** rozpoczęciu sekcji! Zamiast tego dobrą praktyką jest umieszczenie akapitu, który wprowadzi czytelnika do tematu, na przykład:
+>
+>	```latex
+>	\section{Podstawowe konstrukcje języka SQL}
+>	
+>	% W tym miejscu unikamy \subsection!
+>	
+>	Podstawowym językiem komunikacji z relacyjnymi bazami danych jest \textbf{SQL}.
+>   Zawiera on zarówno konstrukcje do definiowania schematu danych, jak i do operowania
+>   na zawartości bazy. Na tych drugich skupimy się w tym rozdziale.
+>	
+>	\subsection{Zapytania i filtrowanie}
+>	(...)
+>	```
 
-	```latex
-    \section{Ciągły rozkład prawdopodobieństwa}
-    
-	% W tym miejscu unikamy \subsection!
-	
-	Dla dyskretnych zmiennych losowych mieliśmy (...)
-	A co byłoby, gdyby (...)?
-	W takiej sytuacji mamy do czynienia z ciągłym rozkładem prawdopodobieństwa.
-	
-	\subsection{Ciągłe zmienne losowe}
-	(...)
-    ```
 - **Na końcu** sekcji umieszczony jest **zbiór zadań** tematycznie z nią związanych. Zadania będą automatycznie odpowiednio ponumerowane, są wrzucone makra, które za to odpowiadają.
     
     ```latex
@@ -123,69 +187,6 @@ Niech $a$ będzie punktem skupienia $A \subset \RR$ i weźmy funkcję $f : A \to
 
 % Rozwiązania zadań nie są umieszczone tutaj, ale hurtowo na końcu rozdziału
 ```
-
-## 🟠 Aktualny status dokumentu
-
-Pierwsza wersja repetytorium powstała w roku 2023 i bazuje na zagadnieniach programowych z tego właśnie roku. Od tego czasu studia licencjackie z informatyki na MIM-ie przeszły zmianę programową, a co za tym idzie - zmianę [zagadnień do egzaminu licencjackiego][requirements]:
-- W niemal każdym z przedmiotów **przeredagowana została lista zagadnień**. Czasem nie wpływa to w żaden sposób na materiał, który jest już zawarty w repetytorium, a czasem materiał nieco się zmienia - coś jest dodane, a coś usunięte.
-- Układ rozdziałów w repetytorium jest ściśle powiązany z przedmiotami obowiązkowymi, których dotyczy rozkład zagadnień programowych na egzaminie. Tutaj również zaszło kilka zmian:
-	- usunięto *Semantykę i weryfikację programów*, *Bezpieczeństwo systemów komputerowych* oraz *IPP i blok JNP*
-	- dodano *Wstęp do uczenia maszynowego*
-	- zmieniono *Systemy operacyjne* na *Architekturę komputerów i systemy operacyjne*
-
-> [!NOTE]
-> Ponieważ repetytorium jest skonstruowane pod klucz archiwalnych zadań z egzaminów licencjackich, powyższe zmiany nie wpływają znacząco na sens obecnie zawartej treści.
-
-### 💡 Lista potrzebnych zmian
-
-- Zmiana **podstawy programowej** na początku każdego rozdziału na aktualną - obecna jest nieaktualna.
-- Spisanie zadań z większej liczby [dostępnych egzaminów licencjackich][exams] do odpowiednich miejsc dokumentu (lista egzaminów, z których już spisano zadania, znajduje się poniżej).
-- Utworzenie rozdziału *Wstęp do uczenia maszynowego*.
-- Przeredagowanie wybranych rozdziałów bądź ich części (szczegóły poniżej w sekcji *Status poszczególnych rozdziałów*).
-
-### Archiwalne zadania zawarte w dokumencie
-
-Jako że jedynie **niewielka część poprzednich egzaminów jest [oficjalnie udostępniana][exams]**, zadania zawarte obecnie w repetytorium bazują w większości na dobrowolnych pracach archiwizacyjnych poprzednich pokoleń studentów (spisujących zadania z pamięci po napisanym egzaminie). Poniższa lista zawiera egzaminy, z których zadania zostały spisane i posegregowane do odpowiednich miejsc w repetytorium:
-- **2023, częściowo** (patrz: notka poniżej)
-- **2022** (I termin)
-- **2021** (I termin)
-- **2020** (I termin)
-- **2020** (zdalny, na Moodle)
-- **2019** (I termin)
-- **2018** (I termin)
-- **2012** (I termin)
-- **2010** (I termin)
-- **2010** (próbny)
-
-Dodatkowo, zadania z I terminu z roku *2023* są umieszczone wyłącznie rozdziałach z **rachunku prawdopodobieństwa, baz danych, programowania współbieżnego** i **matematyki dyskretnej**. Pozostałe zadania należy spisać i umieścić je w odpowiednich miejscach w repetytorium.
-
-### Status poszczególnych rozdziałów
-
-Niektóre rozdziały wciąż wymagają większych lub mniejszych zmian. Mniejsze z nich zawarliśmy w dokumencie jako **przypisy redakcji** umieszczone w czerwonych ramkach lub jako czerwony tekst.
-
-> [!TIP]
-> Jeśli chcesz pomóc nam poprawić którąś z rzeczy oznaczą przypisem redakcji, w kodzie LaTeX-owym oznaczyliśmy każdą z nich komentarzem `% TODO` i ewentualnym dodatkowym komentarzem.
-
-Większe zmiany wypisaliśmy w poniższej tabeli. Kilka uwag:
-- tabela nie uwzględnia mniejszych zmian (są one oznaczone bezpośrednio w repetytorium jako przypisy redakcji oraz w plikach LaTeX-owych jako `% TODO`),
-- jako *docelowy styl językowy* będziemy odnosić się tu do stylu wspomnianego w sekcji *Główne założenia*.
-
-| Rozdział | Status |
-| --- | --- |
-| Analiza matematyczna | 🔴 Część teoretyczną w znacznej większości należy poprawić, znacząco odbiega od docelowego stylu |
-| Geometria z algebrą liniową | 🟠 Sekcje 2.1-2.3 są napisane zgodnie z docelowym stylem językowym, pozostałe trzeba przeredagować |
-| Podstawy matematyki | 🟠 Materiał jest w porządku, potrzeba dodać sporo więcej przykładów i przeredagować całość do docelowego stylu |
-| Matematyka dyskretna | 🟢 Brak potrzebnych większych zmian |
-| Rachunek prawdopodobieństwa | 🟢 Brak potrzebnych większych zmian |
-| Algorytmy i struktury danych | 🔴 Część teoretyczna w dużej mierze chaotyczna, niezrozumiała i z niskiej jakości rysunkami, potrzebne gruntowne przeredagowanie |
-| Języki, automaty i obliczenia | 🟠 Materiał jest w porządku, potrzeba jedynie delikatnie przeredagować całość do docelowego stylu |
-| Bazy danych | 🟢 Brak potrzebnych większych zmian |
-| Programowanie współbieżne | 🟢 Brak potrzebnych większych zmian |
-| Metody numeryczne | 🔴 Część teoretyczna w dużej mierze chaotyczna, potrzebne gruntowne przeredagowanie |
-| Programowanie obiektowe | 🟠 Materiał jest w porządku, potrzeba dodać sporo więcej przykładów i delikatnie przeredagować całość do docelowego stylu |
-| Systemy operacyjne | 🟠 Materiał jest w porządku, potrzeba przeredagować całość do docelowego stylu |
-| Aplikacje WWW | 🟠 Materiał jest w porządku, potrzeba delikatnie przeredagować całość do docelowego stylu |
-| Sieci komputerowe | 🔴 Część teoretyczna w dużej mierze chaotyczna, potrzebne gruntowne przeredagowanie |
 
 <!-- Linki -->
 [requirements]: https://www.mimuw.edu.pl/media/uploads/cms-files/cms-file-zalacznik-zagadnienia-na-egzamin-licencjacki_zFbTxiH.pdf
