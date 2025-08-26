@@ -1,0 +1,898 @@
+\chapter{Podstawy matematyki}
+
+Materiały teoretyczne z tego przedmiotu zostały opracowane na podstawie \href{https://www.mimuw.edu.pl/~urzy/Pmat/pomat.pdf}{skryptu Pawła Urzyczyna}.
+
+\section*{Podstawa programowa}
+\begin{enumerate}
+    \item Działania na \textbf{zbiorach}.
+    \item \textbf{Funkcje} i ich własności.
+    \item \textbf{Relacje równoważności} i ich własności.
+    \item \textbf{Moce zbiorów}.
+    \item \textbf{Porządki częściowe} i ich własności.
+    \item \textbf{Dobre ufundowanie} i indukcja.
+    \item \textbf{Rachunek zdań} -- semantyka i naturalna dedukcja.
+    \item Przykłady opisu własności struktur matematycznych w \textbf{logice pierwszego rzędu}.
+\end{enumerate}
+
+% Michał
+\section{Działania na zbiorach}
+
+\textbf{Zbiór} złożony dokładnie z tych elementów typu $\mathcal{D}$, 
+które spełniają warunek $K(x)$, oznaczamy przez $$\{x : \mathcal{D} \; | \; K(x) \}$$
+
+Zbiory można też definiować przez \textit{zastępowanie}, czyli:
+$$\{f(x) \; | \; x \in \mathcal{D} \}$$
+
+Dwa zbiory $A, B : \pot{\mathcal{D}}$ są równe wtedy i tylko wtedy, gdy $A \subseteq B$ oraz $B \subseteq A$.
+
+Niech $A, B : \pot{\mathcal{D}}$, gdzie $\pot{A}$ to zbiór wszystkich podzbiorów $A$ (\textbf{zbiór potęgowy}).
+\begin{itemize}
+    \item \textbf{Sumą} zbiorów $A$ i $B$ nazywamy zbiór
+    $$A \cup B = \{ x : \mathcal{D} \; | \; x \in A 
+    \lor x \in B \}$$
+    \item \textbf{Iloczyn} lub \textbf{przecięcie} zbiorów $A$ i $B$ to zbiór
+    $$A \cap B = \{ x : \mathcal{D} \; | \; x \in A \land x \in B \}$$
+    \item \textbf{Różnicą} zbiorów $A$ i $B$ nazywamy zbiór
+    $$A - B = \{ x : \mathcal{D} \; | \; x \in A \land x \notin B \}$$
+    \item \textbf{Dopełnienie} zbioru $A$ (do typu $\mathcal{D}$)
+    to zbiór $$-A = \{x : \mathcal{D} \; | \; x \notin A \}$$
+    \item \textbf{Różnica symetryczna} zbiorów $A$ i $B$ to zbiór
+    $$A \stackrel.- B = (A - B) \cup (B - A)$$
+\end{itemize}
+
+Dla odróżnienia od sumy prostej (patrz niżej), wspomnianą ,,zwykłą'' sumę nazywamy czasem sumą teoriomnogościową.
+
+\subsection{Działania nieskończone}
+Pojęcie sumy i iloczynu można uogólnić. Przypuśćmy, że mamy rodzinę zbiorów $\mathcal{R} \subseteq \pot{\mathcal{D}}$.
+Wtedy \textbf{sumą uogólnioną} rodziny $\mathcal{R}$ nazywamy zbiór
+$$\bigcup \mathcal{R} = \{x : \mathcal{D} \; | \; \exists A (x \in A \land A \in \mathcal{R}) \}$$
+Jeśli $\mathcal{R}$ jest rodziną niepustą ($\mathcal{R} \neq \varnothing$) to określamy \textbf{uogólniony iloczyn} rodziny $\mathcal{R}$:
+$$\bigcap \mathcal{R} = \{ x : \mathcal{D} \; | \; \forall A ( A \in \mathcal{R} \Rightarrow x \in A) \}$$
+
+\subsection{Produkty, sumy proste}
+\textbf{Iloczyn kartezjański} zbiorów $A$ i $B$ to zbiór oznaczany przez
+$A \times B$, który składa się z par uporządkowanych postaci $\langle a, b \rangle$, gdzie $a \in A$ oraz $b \in B$. 
+Para uporządkowana $\langle a, b \rangle$ to abstrakcyjny obiekt zadany przez wybór pierwszej współrzędnej $a$ i drugiej współrzędnej $b$. Inaczej mówiąc, dwie pary uważamy za równe, gdy ich odpowiednie współrzędne są takie same.
+
+Pojęcie produktu można uogólnić na trzy i więcej wymiarów. Można zdefiniować produkt $A \times B \times C$ jako $(A \times B) \times C$, przyjmując, że trójka uporządkowane $\langle a, b, c \rangle$ to 
+para $\langle \langle a, b \rangle, c \rangle$, i tak dalej.
+
+\textbf{Suma prosta} zbiorów $A$ i $B$, którą oznaczymy przez $A \oplus B$, zwana jest też koproduktem lub sumą rozłączną. Każdy element sumy prostej $A \oplus B$ jest
+\begin{itemize}
+    \item albo postaci $\langle a \rangle_1$, gdzie $a \in A$
+    \item albo postaci $\langle b \rangle_2$, gdzie $b \in B$
+\end{itemize}
+Innymi słowy, jest to suma zbiorów, która przy okazji oznacza każdy element, z którego zbioru on pochodził. Oznacza to, że jest to suma pozwalająca na powtórzenia. Przyjmujemy przy tym, że $\langle x \rangle_i = \langle y \rangle_j$
+wtedy i tylko wtedy, gdy $x = y$ oraz $i = j$.
+
+\begin{problems}
+    \prob Dana jest rodzina zbiorów $A$ oraz zbiory $X, Y$ takie, że $X \in A$. Prawdą jest, że
+    \answers{$(Y \subseteq X) \Rightarrow (Y \subseteq \bigcup A)$}{$\bigcap A \subseteq \bigcup A$}{$(Y \subseteq X) \Rightarrow (\bigcap A \subseteq Y$)}
+\end{problems}
+
+% Michał
+\section{Funkcje i ich własności}
+O \textbf{funkcji} mówimy wtedy, gdy każdemu elementowi $x \in A$ potrafimy jednoznacznie przypisać pewien element $f(x) \in B$. Zapisujemy to jako
+$$f : A \to B$$
+Zbiór wszystkich funkcji oznaczamy przez $A \to B$ albo $B^A$.
+\textbf{Funkcja częściowa} nie zawsze musi mieć określoną wartość. Zbiór $\Dom(f) = \{ x \in A \; | \; f(x) \text{ jest określone} \}$ nazywamy \textbf{dziedziną funkcji}.
+
+Dwie funkcje $f, g : A \to B$ są sobie równe wtedy i tylko wtedy, gdy dla każdego $x \in A$ zachodzi
+$f(x) = g(x)$.
+
+\textbf{Wykresem} funkcji nazywamy zbiór $\mathcal{W}(f) = \{ \langle x, y \rangle \; | \; f(x) = y \} \subseteq A \times B$. 
+
+\textbf{Zbiorem wartości} funkcji $f : A \to B$ nazywamy zbiór
+$$\text{Rg}(f) = \{ y \in B \; | \; \exists x \in A . f(x) = y \}$$
+
+\subsection{Injekcje, surjekcje, bijekcje}
+
+Funkcja $f : A \to B$ jest \textbf{różnowartościowa} wtedy i tylko wtedy, gdy dla każdej pary $x, y \in A$, takiej że $x \neq y$, zachodzi $f(x) \neq f(y)$.
+
+Funkcja $f : A \to B$ jest \textbf{,,na''} wtedy i tylko wtedy, gdy dla każdego $y \in B$ istnieje odpowiadający mu $x \in A$, taki że $f(x) = y$.
+
+Funkcję różnowartościową nazywamy też \textbf{injekcją}, funkcję ,,na'' -- \textbf{surjekcją}, a funkcję, która jest różnowartościowa i ,,na'' -- \textbf{bijekcją}.
+
+\subsection{Odwracanie i składanie funkcji}
+Jeśli $f : A \to B$ jest injekcją, to możemy określić funkcję częściową $f^{-1}$ będącą \textbf{odwrotnością funkcji}, taką że dla każdego $x \in A$ jest $f^{-1}(f(x)) = x$.
+
+Niech $f : A \to B$ oraz $g : B \to C$. \textbf{Złożeniem funkcji} $f$ i $g$ nazywamy funkcję $g \circ f$, określoną równaniem $(g \circ f)(x) = g(f(x))$ dla każdego $x \in A$.
+
+Wybrane własności:
+\begin{itemize}
+    \item Jeśli $f : A \to B, g : B \to C, h : C \to D$, to $h \circ (g \circ f) = (h \circ g) \circ f$.
+    \item Jeśli $f : A \to B$ jest bijekcją, to $f^{-1} \circ f = id_A$ oraz $f \circ f^{-1} = id_B$.
+    \item Jeśli $f : A \to B$, to $f \circ id_A = f = id_B \circ f$.
+    \item Jeśli $f : A \to B, g : B \to C$ są injekcjami, to $g \circ f$ też jest.
+    \item Jeśli $f : A \to B, g : B \to C$ są surjekcjami, to $g \circ f$ też jest.
+\end{itemize}
+
+\subsection{Obrazy i przeciwobrazy}
+
+Niech $f : A \to B$. \textbf{Obraz} zbioru $C \subseteq A$ przy przekształceniu $f$ to zbiór
+$$f(C) = \{ f(a) \; | \; a \in C \}$$
+\textbf{Przeciwobrazem} zbioru $D \subseteq B$ przekształceniu $f$ nazwiemy zbiór
+$$f^{-1}(D) = \{ a \in A \; | \; a \in Dom(f) \land f(a) \in D \}$$
+
+\begin{example}
+    Niech $f \ : \ \mathbb{N} \to \mathbb{N}$ taka, że $f(n) = 2n$. Wtedy obraz zbioru $\{ 2, 3, 4 \}$ przy przekształceniu $f$ to $f(\{ 2, 3, 4 \}) = \{ 4, 6, 8 \}$, zaś przeciwobraz to $f^{-1}(\{ 2, 3, 4 \}) = \{ 1, 2 \}$.
+\end{example}
+
+\begin{problems}
+    \prob Dane są trzy funkcje $f: A \rightarrow B$, $g: B \rightarrow C$ i $h: C \rightarrow D$, których złożenie $h \circ g \circ f: A \rightarrow D$ jest bijekcją. Wynika z tego, że
+    \answers{$f$ jest funkcją różnowartościową (injekcją)}{$g$ jest bijekcją}{$h$ jest na $D$ (surjekcją)}
+    
+    \prob Dana jest funkcja $f: \NN \to \NN$. Niech $f^{2019}$ będzie 2019-krotnym złożeniem funkcji $f$. Prawdą jest, że
+    \answers{$f$ jest injekcją $\Leftrightarrow f^{2019}$ jest injekcją}{$f$ jest surjekcją $\Leftrightarrow f^{2019}$ jest surjekcją}{$f(42) = 42 \Leftrightarrow f^{2019}(42) = 42$}
+    
+    \prob Jeśli $f : A \rightarrow B$ jest różnowartościowa, to funkcja obrazu $f^{\rightarrow} : \mathcal{P}(A) \rightarrow \mathcal{P}(B)$
+    \answers
+    {jest różnowartościowa}
+    {jest funkcją odwrotną do funkcji przeciwobrazu $f^{\leftarrow} : \mathcal{P}(B) \rightarrow \mathcal{P}(A)$}
+    {spełnia warunek $ \bigcup \{f^{\rightarrow}(Z): Z \in \mathcal{L}\} = f^{\rightarrow} (\bigcup \mathcal{L})$ dla dowolnej rodziny $\mathcal{L} \subseteq \mathcal{P}(A)$}
+
+    \prob Niech $f$ będzie funkcją ze zbioru $A$ w zbiór $B$. Wynika z tego, że
+    \answers
+    {obraz zbioru $A$ przy funkcji $f$ to zbiór $B$}
+    {przeciwobraz zbioru $B$ przy funkcji $f$ to zbiór $A$}
+    {jeśli $X$ jest niepustym podzbiorem $B$, to przeciwobraz zbioru $X$ przy funkcji $f$ jest niepusty}
+\end{problems}
+
+
+
+% Jasiek
+\section{Relacje równoważności i ich własności}
+\textbf{Relacja} dwuargumentowa to zbiór wszystkich uporządkowanych par tych przedmiotów, pomiędzy którymi relacja zachodzi. Jeśli dwa elementy $a, b$ są ze sobą w relacji $r$, to zapiszemy to jako $a \ r \ b$. 
+Pewne własności relacji dwuargumentowych mają swoje nazwy:
+\begin{itemize}
+    \item \textbf{zwrotna} -- $\forall_{x \in A} \; x \; r \; x$
+    \item \textbf{symetryczna} -- $\forall_{x, y \in A} \; x \; r \; y \Rightarrow y \; r \; x$
+    \item \textbf{przechodnia} -- $\forall_{x, y, z \in A} \; x \; r \; y \land y \; r \; z \Rightarrow x \; r \; z$
+    \item \textbf{antysymetryczna} -- $\forall_{x, y \in A} \; x \; r \; y \land y \; r \; x \Rightarrow x = y$
+    \item \textbf{spójna} -- $\forall_{x, y \in A} \; x \; r \; y \lor y \; r \; x$ -- innymi słowy, każde dwa elementy są porównywalne
+\end{itemize}
+
+Należy pamiętać, że relacje to nadal zwyczajne zbiory, w związku z tym pojęcia takie jak suma relacji, iloczyn relacji itp. to zupełnie zwyczajne sumy i iloczyny.
+
+\subsection{Relacje równoważności}
+\textbf{Relacja równoważności} to dwuargumentowa relacja $r$ na zbiorze $A$, która jest zwrotna, symetryczna i przechodnia. Intuicyjnie możemy więc utożsamiać relację równoważności z podziałem zbioru $A$ na klasy, których elementy mają pewną cechę wspólną.
+
+\textbf{Klasą abstrakcji} relacji równoważności $r$ w zbiorze $A$, wyznaczoną przez element $x \in A$, nazywamy zbiór $[x]_r = \{y \in A \; | \; x \; r \; y\}$.
+
+Równoważne są warunki:
+\begin{enumerate}
+    \item $x \; r \; y$
+    \item $x \in [y]_r$
+    \item $y \in [x]_r$
+    \item $[x]_r = [y]_r$
+    \item $[x]_r \cap [y]_r \neq \varnothing$
+\end{enumerate}
+
+\textbf{Zbiór ilorazowy} relacji $r$ w zbiorze $A$ jest zdefiniowany jako zbiór jej klas abstrakcji i oznaczany jest poprzez $A/_r$.
+
+\begin{example}
+    Przykładem relacji równoważności jest relacja przystawania modulo 7 w zbiorze liczb naturalnych. Taka relacja ma siedem klas abstrakcji. Jeśli $x, y \in \NN$ należą do różnych klas abstrakcji, to dają one inne reszty z dzielenia przez 7.
+\end{example}
+
+\begin{example}
+    Szczególnym przykładem relacji równoważności jest relacja identycznościowa $1_A = \{ \langle x, x \rangle \; | \; x \in A\}$. Jej klasami abstrakcji są wszystkie singletony.
+\end{example}
+
+\textbf{Podział} zbioru $A$ to rodzina $P \subseteq \pot{A}$, która spełnia warunki:
+\begin{itemize}
+    \item $\forall_{p \in P} \; p \neq \varnothing$
+    \item $\forall_{p, q \in P} \; p = q \lor p \cap q = \varnothing$
+    \item $\bigcup P = A$
+\end{itemize}
+Bardziej intuicyjnie, podział zbioru $A$ dzieli go na rozłączne części, a każdy element $x \in A$ należy do pewnej części (czyli nie ma elementów nieprzydzielonych).
+
+\textbf{Lemat 1.} Jeżeli $r$ jest relacją równoważności w $A$ to $A /_r$ jest podziałem zbioru $A$.
+
+\textbf{Lemat 2.} Jeżeli $P$ jest podziałem zbioru $A$, to istnieje taka relacja równoważności $r$ w $A$, że $P = A /_r$.
+
+Powyższe lematy mówią, że relacje równoważności i podziały zbioru to w istocie to samo. Jedno determinuje drugie i na odwrót.
+
+\subsection{Aksjomat wyboru}
+Niech $r$ będzie częściową relacją równoważności w typie $D$. Rozważmy funkcję wyboru
+\begin{align*}
+    \sigma: D /_r \rightarrow D \hspace{20pt} \text{taka, że} \hspace{20pt} \forall_{a \in D} \; \sigma([a]_r) \in [a]_r
+\end{align*}
+Zatem funkcja wyboru dla każdego typu ilorazowego powinna zwrócić pewnego reprezentanta tego typu. Oczywiście takich funkcji może być wiele. Założenie, że taka funkcja istnieje nazywamy \textbf{aksjomatem (pewnikiem) wyboru}. To założenie nie jest wcale oczywiste, bo nie zawsze jest możliwe określenie konkretnej funkcji wyboru.
+
+Własność $\sigma(K) \in K$ dla $K \in \Dom(\sigma)$ sugeruje następujące uogólnienie pojęcia funkcji wyboru: jeśli $R$ jest rodziną podzbiorów $D$ (niekoniecznie rozłączną), to funkcją wyboru
+dla $R$ nazywamy dowolną funkcję $f: R \rightarrow D$ spełniającą dla wszystkich $A \in R$ warunek $f(A) \in A$. Intuicyjnie, podobnie jak powyżej, dla każdego zbioru wybieramy jego reprezentanta.
+
+\begin{problems}
+    \prob Niech $A$ będzie dowolnym zbiorem i niech $s,r\subseteq A\times A$ będą relacjami. Jeśli $s$ i $r$ są
+    \answers{zwrotne, to $s\cup r$ jest relacją zwrotną}{symetryczne, to $s\cup r$ jest relacją symetryczną}{przechodnie, to $s\cup r$ jest relacją przechodnią}
+
+    \prob Niech $f:A\rightarrow B$ będzie funkcją ,,na'' $B$ i niech $s_A$ będzie relacją równoważności na $A$. Przez $f^{-1}(X)$ oznaczamy przeciwobraz $X$ przy $f$. Następująca relacja $r$ jest relacją równoważności na $B$:
+    \answers{$b\ r\ b'$ wtedy i tylko wtedy, gdy $f^{-1}(\{b\})\cup f^{-1}(\{b'\})$ jest pewną klasą abstrakcji relacji $s_A$}{$b\ r\ b'$ wtedy i tylko wtedy, gdy istnieją $a,a'\in A$ takie, że $a\in f^{-1}(\{b\})$ i $a'\in f^{-1}(\{b'\})$ oraz $a\ s_A\ a'$}{$b\ r\ b'$ wtedy i tylko wtedy, gdy dla każdych $a,a'\in A$ takich, że $a\in f^{-1}(\{b\})$ i $a'\in f^{-1}(\{b'\})$, zachodzi $a\ s_A\ a'$}
+
+    \prob $r$ jest relacją równoważności na liczbach naturalnych dodatnich określoną w następujący sposób: liczby $x$ i $y$ są w relacji $r$ wtedy i tylko wtedy, gdy zbiory dzielników pierwszych liczb $x$ i $y$ są takie same. Wynika z tego, że
+    \answers{wszystkie klasy abstrakcji relacji $r$ są nieskończone}{wszystkie klasy abstrakcji relacji $r$ są równoliczne}{zbiór ilorazowy relacji $r$ jest skończony}
+
+    \prob W zbiorze $5$-elementowym
+    \answers{każda relacja przechodnia ma moc co najmniej $3$}{każda relacja przechodnia ma moc co najwyżej $25$}{istnieje relacja przechodnia o mocy równej $24$}
+
+    \prob Niech $r$ będzie relacją równoważności na niepustym zbiorze $A$. Wynika z tego, że
+    \answers
+    {każda klasa abstrakcji relacji $r$ jest niepusta}
+    {dowolne dwie różne klasy abstrakcji relacji $r$ są rozłączne}
+    {suma zbioru klas abstrakcji relacji $r$ jest równa $A$}
+\end{problems}
+
+\section{Moce zbiorów}
+Mówimy, że zbiory $A$ i $B$ są \textbf{równoliczne}, albo że są to zbiory \textbf{tej samej mocy} (i piszemy $A \sim B$) wtedy i tylko wtedy, gdy istnieje bijekcja $f : A \to B$.
+
+Pojęcie mocy zbioru, inaczej zwanej jego \textbf{liczbą kardynalną}, jest wygodnym skrótem myślowym. Jeśli użyjemy znaku $\mathfrak{m}$ na oznaczenie mocy jakiegoś zbioru $A$, to napis $|B| = \mathfrak{m}$ oznacza tyle samo co $B \sim A$.
+
+Relacja równoliczności zbiorów tego samego typu jest relacją równoważności.
+
+\subsection{Zbiory przeliczalne}
+Liczbę kardynalną (moc) zbioru $\mathbb{N}$ oznaczamy symbolem
+$\alef$ (\textbf{alef zero}). Mówimy, że zbiór $A$ jest \textbf{przeliczalny} wtedy i~tylko wtedy, gdy jest skończony lub jest zbiorem mocy $\alef$. W przeciwnym razie zbiór $A$ jest \textbf{nieprzeliczalny}.
+
+Przykłady zbiorów przeliczalnych: \purple{$\mathbb{N} \times \mathbb{N}$, $\mathbb{Z}$, $\mathbb{Q}$}.
+
+Suma przeliczalnej rodziny zbiorów przeliczalnych jest przeliczalna.
+
+\begin{example}
+    Pokażemy, że jeśli alfabet $A$ jest przeliczalny, to zbiór wszystkich słów
+    $A^*$ też jest przeliczalny.
+
+    Niech $A^n$ oznacza zbiór wszystkich słów nad $A$ długości $n$. 
+    Nietrudno pokazać przez indukcję, że każdy ze zbiorów $A^n$ jest przeliczalny. 
+    Skoro $A^*$ jest sumą wszystkich $A^n$, dla $n \in \mathbb{N}$, teza wynika 
+    ze wspomnianego twierdzenia.
+\end{example}
+
+\begin{example}
+    Zbiór $\{ 0, 1 \}^\mathbb{N}$ wszystkich nieskończonych ciągów zerojedynkowych nie jest równoliczny z $\mathbb{N}$,
+    a więc nie jest przeliczalny. W przeciwnym razie moglibyśmy wszystkie ciągi zerojedynkowe ustawić w nieskończony ciąg,
+    tworząc dwuwymiarową tablicę bitów.
+    Weźmy ciąg stworzony przez odwracanie kolejnych elementów na przekątnej -- nietrudno zauważyć, że ten ciąg nie może znajdować się na tablicy, skąd uzyskujemy sprzeczność.
+\end{example}
+
+\subsection{Teoria mocy}
+
+Moc zbioru $\RR$ nazywamy \textbf{continuum} i oznaczamy przez $\cont$. 
+
+Przykłady zbiorów o mocy continuum: \purple{$\pot{\mathbb{N}}$, $\{0, 1\}^\mathbb{N}$, $\mathbb{N}^\mathbb{N}$}.
+\bigskip
+
+Dla dowolnych niepustych zbiorów $A, B$ następujące warunki są równoważne:
+\begin{enumerate}
+    \item $|A| \leq |B|$,
+    \item istnieje injekcja $f : A \to B$, 
+    \item istnieje surjekcja $f : B \to A$,
+    \item zbiór $A$ jest równoliczny z pewnym podzbiorem zbioru $B$.
+\end{enumerate}
+
+Ponadto warto pamiętać, że dla dowolnych zbiorów $A, B$, jeśli $A \subseteq B$, to $|A| \leq |B|$.
+
+Bardzo istotne w teorii mocy jest \textbf{twierdzenie Cantora-Bernsteina}. Choć może wydawać się oczywiste, za jego pomocą możemy w łatwy sposób wyznaczać nieznane nam moce zbiorów, korzystając ze zbiorów, których moc znamy:
+\begin{center}
+    jeśli $|A| \leq |B|$ oraz $|B| \leq |A|$, to $|A| = |B|$
+\end{center}
+
+% TODO
+\begin{editorsnote}
+    Do twierdzenia Cantora-Bernsteina przydałoby się dorzucić przykład pokazujący jego zastosowanie w praktyce.
+\end{editorsnote}
+
+\subsection{Arytmetyka liczb kardynalnych}
+
+Na liczbach kardynalnych, tak jak na zwykłych liczbach naturalnych, można wykonywać operacje arytmetyczne, jednakże z drobnymi różnicami. Dopóki operujemy na liczbach kardynalnych skończonych (tj. wprawdzie liczbach naturalnych), to arytmetyka jest dokładnie taka, jakiej możemy się spodziewać. W przeciwnym przypadku sprawa wygląda inaczej. Na ogół wystarczy pamiętać, że jeśli $\kappa$ lub $\mu$ jest nieskończone, to:
+\begin{enumerate}
+    \item $\kappa + \mu = \kappa \cdot \mu = \max\{\kappa, \mu\}$,
+    \item $\kappa - \mu = \kappa$ jeśli $\kappa > \mu$, wpp. 0,
+    \item zakładając, że $\mu \not= 0$, $\kappa / \mu = \kappa$ jeśli $\kappa > \mu$, dla $\kappa = \mu$ wynikiem może być każda liczba kardynalna $\leqslant \kappa$, zaś w przeciwnym przypadku operacja nie jest zdefiniowana.
+\end{enumerate}
+
+\begin{problems}
+    \prob Każdy podzbiór $\mathbb{R}$ o mocy continuum
+    \answers{zawiera przedział otwarty}{jest nieograniczony}{ma przeliczalne dopełnienie}
+
+    \prob Istnieje nieskończenie wiele funkcji z liczb naturalnych w liczby naturalne, dla których
+    \answers{obrazem zbioru $\{1,2\}$ jest zbiór pusty}{obrazem zbioru $\{1,2\}$ jest zbiór $\{2,3,4\}$}{przeciwobrazem zbioru $\{1,2\}$ jest zbiór pusty}
+
+    \prob Równoliczne są
+    \answers{zbiór liczb naturalnych i zbiór liczb wymiernych}{zbiór liczb rzeczywistych i zbiór potęgowy zbioru liczb naturalnych}{zbiór ciągów nieskończonych o wyrazach ze zbioru $\{0,1\}$ i zbiór ciągów nieskończonych o~wyrazach ze zbioru liczb naturalnych}
+
+    \prob Zbiorem mocy continuum jest
+    \answers
+    {zbiór liczb naturalnych}
+    {zbiór potęgowy zbioru liczb naturalnych}
+    {zbiór liczb niewymiernych}
+\end{problems}
+
+% Jasiek
+\section{Porządki częściowe i ich własności}
+Relację $r \subseteq A \times A$ nazywamy relacją \textbf{częściowego porządku} w $A$, gdy jest zwrotna, antysymetryczna i~przechodnia. Parę $\langle A, r \rangle$, a czasami sam zbiór $A$, nazywamy zbiorem \textbf{częściowo uporządkowanym} lub po prostu częściowym porządkiem. Jeśli dodatkowo relacja $r$ jest spójna, to mówimy, że jest to relacja \textbf{liniowego porządku}.
+
+\begin{example}
+    Rozważmy kilka relacji:
+    \begin{itemize}
+        \item Relacja $\leq$ w zbiorze liczb rzeczywistych jest liniowym porządkiem.
+        \item Relacja podzielności $n \; | \; m$ jest częściowym porządkiem w zbiorze liczb naturalnych.
+        \item Relacja inkluzji $\subseteq$ jest częściowym porządkiem w zbiorze potęgowym liczb naturalnych $\pot{\NN}$ (a także w dowolnej rodzinie zbiorów).
+        \item Porządek leksykograficzny jest relacją liniowego porządku w zbiorze $A^*$ (o ile alfabet jest liniowo uporządkowany, wpp. jest to relacja częściowego porządku).
+        \item Relacja $<$ w zbiorze liczb rzeczywistych nie jest częściowym porządkiem, ponieważ nie jest zwrotna.
+    \end{itemize}
+\end{example}
+
+Poniżej przedstawione są trzy ważne definicje dla porządku częściowego $\langle A, \leq \rangle$:
+\begin{enumerate}
+    \item Elementy $a, b \in A$ są \textbf{porównywalne}, gdy $a \leq b$ lub $b \leq a$. W przeciwnym razie $a, b$ są \textbf{nieporównywalne}.
+    \item Jeśli $B \subseteq A$ i każde dwa elementy zbioru $B$ są porównywalne to mówimy, że $B$ jest \textbf{łańcuchem} w $A$.
+    \item Jeśli $B \subseteq A$ i każde dwa różne elementy zbioru $B$ są nieporównywalne, to mówimy, że $B$ jest \textbf{antyłańcuchem} w $A$. 
+\end{enumerate}
+
+\begin{example}
+    Oto proste przykłady łańcuchów i antyłańcuchów:
+    \begin{itemize}
+        \item W porządku $\lr{\NN, |}$ potęgi dwójki tworzą łańcuch, a liczby pierwsze -- antyłańcuch.
+        \item Zbiory dwuelementowe tworzą antyłańcuch w $\lr{\pot{\NN}, \subseteq}$.
+    \end{itemize}
+\end{example}
+
+\subsection{Elementy wyróżnione}
+Niech $\langle A, \leq \rangle$ będzie częściowym porządkiem i niech $a \in A$. Mówimy, że element $a$ jest w zbiorze $A$:
+\begin{itemize}
+    \item \textbf{największy}, gdy $\forall_{x \in A} \; x \leq a$
+    \item \textbf{maksymalny}, gdy $\forall_{x \in A} \; a \leq x \Rightarrow a = x$
+    \item \textbf{najmniejszy}, gdy $\forall_{x \in A} \; a \leq x$
+    \item \textbf{minimalny}, gdy $\forall_{x \in A} \; x \leq a \Rightarrow a = x$
+\end{itemize}
+Z tego wynika, że jeśli $a$ jest elementem największym (najmniejszym) to jest też jedynym elementem
+maksymalnym (minimalnym).
+
+\begin{example}
+    Oto kilka przykładów porządków oraz ich elementy wyróżnione:
+    \begin{itemize}
+        \item W porządku $\langle \NN - \{0, 1\}, \; | \; \rangle$ nie ma elementu najmniejszego ani żadnych elementów maksymalnych. Natomiast liczby pierwsze są elementami minimalnymi.
+        \item W zbiorze liczb rzeczywistych $\RR$ uporządkowanym przez zwykłą relację $\leq$, nie ma żadnych elementów minimalnych ani maksymalnych.
+        \item W zbiorze potęgowym liczb naturalnych $\pot{\NN}$ uporządkowanym przez inkluzję elementem najmniejszym jest $\varnothing$ a największym $\NN$.
+    \end{itemize}
+\end{example}
+
+Niech $\langle A, \leq \rangle$ będzie częściowym porządkiem i niech $B \subseteq A$ oraz $a \in A$. Mówimy, że $a$ jest \textbf{ograniczeniem górnym} zbioru $B$ ($a \geq B$), gdy $b \leq a$ dla wszystkich $b \in B$.
+
+Element $a$ jest \textbf{kresem górnym} zbioru $B$ ($a = \sup B$), gdy jest najmniejszym ograniczeniem górnym $B$, czyli:
+\begin{itemize}
+    \item $a \geq B$
+    \item jeśli $c \geq B$, to $c \geq a$ dla dowolnego $c \in A$
+\end{itemize}
+Analogicznie definiujemy \textbf{ograniczenia dolne} ($a \leq B$) i \textbf{kresy dolne} ($a = \inf B$).
+
+\begin{example}
+    Rozważmy kilka przykładów kresów i ograniczeń:
+    \begin{itemize}
+        \item W rodzinie wszystkich podzbiorów zbioru $A$ (uporządkowanej przez inkluzję) kresem górnym dowolnej podrodziny $X \subseteq \pot{A}$ jest suma $\bigcup X$.
+        \item W zbiorze liczb wymiernych $\QQ$ ze zwykłym uporządkowaniem zbiór $\{q \in \QQ. \; q^2 < 2\}$ ma ograniczenia górne, ale nie ma kresu górnego.
+    \end{itemize}
+\end{example}
+
+\subsection{Izomorfizmy porządków}
+Często mamy do czynienia z dwoma zbiorami, które są różne, ale „tak samo” uporządkowane. Takie porządki nazywamy \textbf{izomorficznymi}. Mówimy, że zbiory częściowo uporządkowane $\langle A, \leq \rangle$ i $\langle B, \leq \rangle$ są izomorficzne, gdy istnieje bijekcja $f: A \rightarrow B$ spełniająca warunek $a \leq a' \ \Leftrightarrow \ f(a) \leq f(a')$ dla dowolnych $a, a' \in A$. Piszemy wtedy $A \approx B$, a funkcję $f$ nazywamy izomorfizmem.
+
+Jeśli dwa zbiory częściowo uporządkowane są izomorficzne i jeden z nich
+\begin{itemize}
+    \item ma element najmniejszy, największy, maksymalny, minimalny;
+    \item jest liniowo uporządkowany;
+    \item spełnia dowolny warunek dotyczący tylko relacji porządkującej;
+\end{itemize}
+to ten drugi też ma odpowiednią własność.
+
+\begin{example}
+    Rozpatrzmy następujące podzbiory $\RR$, uporządkowane jak zwykle:
+    \begin{itemize}
+        \item $A = \{1 - \frac{1}{n} \; | \; n \in \NN - \{0\}\}$
+        \item $A' = \{1 - \frac{1}{n} \; | \; n \in \NN - \{0\}\} \cup \{1\}$
+        \item $A'' = \{1 - \frac{1}{n} \; | \; n \in \NN - \{0\}\} \cup \{1, 2\}$
+        \item $B = \{m - \frac{1}{n} \; | \; n, m \in \NN - \{0\}\}$
+    \end{itemize}
+    Zbiór wszystkich liczb naturalnych $\NN$ jest izomorficzny ze zbiorem $A$. Żadne dwa spośród zbiorów $A, A', A'', B$ nie są izomorficzne (np. $A \napprox A'$, ponieważ $A$ nie ma elementu największego w przeciwieństwie do $A'$).
+\end{example}
+
+\begin{problems}
+    \prob Dla $x \in \mathbb{N}$ niech $J(x)$ oznacza liczbę jedynek występujących w zapisie binarnym liczby $x$. Relacją częściowego porządku w $\mathbb{N}$ jest relacja
+    \answers{$\{\langle x,y \rangle \in \mathbb{N} \times \mathbb{N} : J(x) \leq J(y)\}$}{$\{\langle x,y \rangle \in \mathbb{N} \times \mathbb{N} : J(x) < J(y)$ lub $x=y\}$}{$\{\langle x,y \rangle \in \mathbb{N} \times \mathbb{N} : J(x) < J(y)$ lub $x\leq y\}$}
+
+    \prob Istnieje relacja równoważności na $\pot{\mathbb{N}}$, taka że
+    \answers{jest częściowym porządkiem}{ma więcej niż continuum klas abstrakcji}{jej dopełnienie też jest relacją równoważności na $\pot{\NN}$}
+
+    \prob Zbiór $A$ ma moc $\alef$. Wynika z tego, że w częściowym porządku $\langle\mathcal{P}(A),\subseteq\rangle$
+    \answers{każdy podzbiór ma kres górny}{istnieje łańcuch o mocy continuum}{istnieje antyłańcuch o mocy continuum}
+
+    \prob Relacja na zbiorze $A$: $\{\langle x, x\rangle \ | \ x \in A\}$ jest
+    \answers
+    {relacją równoważności}
+    {relacją częściowego porządku}
+    {przechodnia}
+
+    \prob Rozpatrzmy zbiór funkcji różnowartościowych z $\NN$ w $\NN$, uporządkowany ,,po współrzędnych'', tj. $f \preceq g$ wtedy i tylko wtedy, gdy dla każdego $n \in \NN$ zachodzi $f(n) \leq g(n)$. W tym porządku
+    \answers
+    {każdy niepusty podzbiór ma kres dolny}
+    {istnieje antyłańcuch mocy continuum}
+    {istnieje łańcuch mocy continuum}
+\end{problems}
+
+
+
+
+
+
+
+% Jasiek
+\section{Dobre ufundowanie i indukcja}
+
+Niech $\langle A, \leq \rangle$ będzie zbiorem częściowo uporządkowanym. Jeśli każdy niepusty podzbiór zbioru $A$ ma element minimalny, to mówimy, że $\langle A, \leq \rangle$ jest częściowym dobrym porządkiem, lub, że $A$ jest \textbf{dobrze ufundowany}. Jeśli ponadto porządek $\langle A, \leq \rangle$ jest liniowy, to jest to dobry porządek (wtedy każdy niepusty podzbiór $A$ ma element najmniejszy).
+
+Zbiór $\langle A, \leq \rangle$ jest dobrze ufundowany wtedy i tylko wtedy, \purple{gdy nie istnieje w nim nieskończony ciąg malejący}.
+
+\begin{example}
+    Rozważmy kilka przykładów (częściowo) dobrych porządków:
+    \begin{itemize}
+        \item Zbiór $\NN$ jest dobrze uporządkowany.
+        \item Zbiór $\NN^k$, gdzie $k \in \NN$, z porządkiem po współrzędnych jest dobrze uporządkowany.
+        \item Zbiory $\ZZ, \QQ, \RR$ nie są dobrze uporządkowane.
+        \item Porządek leksykograficzny na $A^*$, gdzie $A = \{a, b\}$ nie jest dobrze ufundowany.
+    \end{itemize}
+\end{example}
+
+\subsection{Indukcja}
+Zasada indukcji, którą znamy dla liczb naturalnych, uogólnia się łatwo na dowolne zbiory dobrze ufundowane. Tę uogólnioną zasadę indukcji nazywamy czasem indukcją strukturalną.
+
+Podzbiór $B$ zbioru częściowo uporządkowanego $A$ nazywamy odcinkiem początkowym w $A$, gdy
+\begin{align*}
+    \forall_{x, y \in A} \; (x \in B \land y \leq x) \Rightarrow y \in B
+\end{align*}
+Szczególny przypadek odcinka początkowego to odcinek wyznaczony przez element $x \in A$:
+\begin{align*}
+    \mathcal{O}_A(x) = \{ y \in A \; | \; y < x \}
+\end{align*}
+
+\begin{example}
+    W zbiorze $\NN$ ze zwykłym porządkiem zachodzi $\mathcal{O}_{\NN}(n) = \{0, 1, ..., n - 1\}$.
+\end{example}
+
+Analogicznie uogólniamy schemat definiowania przez indukcję. Jeśli $\langle A, \leq \rangle$ jest dobrze ufundowany, to możemy definiować funkcję $f: A \to B$, korzystając z dowolnych wartości $f (b)$ dla $b < a$ przy określaniu $f(a)$.
+
+\begin{example}
+    Funkcja $f: \NN \setminus \{0, 1\} \to \NN$ zdefiniowana w następujący sposób:
+    \begin{align*}
+        f(n) = \begin{cases}
+            n, \hspace{60pt} & n \text{ jest pierwsze} \\
+            f(m) + f(k), & n = mk, \; m, k \in \NN_{\geq 2}
+        \end{cases}
+    \end{align*}
+jest zdefiniowana przez indukcję ze względu na dobrze ufundowaną relację podzielności.
+\end{example}
+
+
+\begin{problems}
+    \prob Porządek leksykograficzny jest dobrze ufundowany na
+    \answers{$\mathbb{N}^k$ dla każdego $k \in \mathbb{N}$}{$\mathbb{N}^*$ -- zbiór skończonych ciągów liczb naturalnych}{$\mathbb{Q}^k$ dla każdego $k \in \mathbb{N}$}
+
+    \prob Każdy porządek częściowy można rozszerzyć do porządku
+    \answers{liniowego}{dobrze ufundowanego}{dobrego}
+\end{problems}
+
+
+
+
+
+
+% Filip
+\section{Rachunek zdań}
+
+\textbf{Formułą zdaniową} nazwiemy wyrażenie zbudowane rekurencyjnie:
+\begin{itemize}
+\item Symbole zdaniowe (\textbf{zmienne}), zazwyczaj oznaczane jako $p, q, r, ...$, są formułami.
+\item Znaki $\top$ i $\bot$ (odpowiednio ,,prawda'' i ,,fałsz'') są formułami.
+\item Jeśli $\alpha$ jest formułą, to $\neg\alpha$ też jest formułą.
+\item Formuły można łączyć spójnikami: alternatywa ($\lor$), koniunkcja ($\land$), implikacja ($\Rightarrow$) i równoważność ($\Leftrightarrow$).
+\end{itemize}
+
+Formuły zdaniowe mogą przyjmować wartości logiczne ,,prawda'' i ,,fałsz'' zależnie od \textbf{wartościowania}. Wartościowaniem dla danej formuły $\phi$ nazwiemy ustalone przypisanie każdej zmiennej zdaniowej występującej w~$\phi$~wartości prawda/fałsz. 
+
+Formuła zdaniowa jest \textbf{spełnialna}, jeśli istnieje wartościowanie, dla którego ta formuła jest prawdziwa. Formuła jest \textbf{tautologią}, jeśli niezależnie od przyjętego wartościowania formuła ta zawsze jest prawdziwa. Warto znać następujące tautologie:
+\begin{itemize}
+\item prawo wyłączonego środka: $p \lor \neg p$,
+\item prawa De Morgana: $\neg(p \lor q) \Leftrightarrow (\neg p \land \neg q)$ oraz $\neg(p \land q) \Leftrightarrow (\neg p \lor \neg q)$,
+\item alternatywne sformułowanie implikacji: $(p \Rightarrow q) \Leftrightarrow (\neg p \lor q)$,
+\item dwuwartościowość logiki zdaniowej: $p \Leftrightarrow \neg\neg p$.
+\end{itemize}
+
+Każdą formułę zdaniową można zapisać w \textbf{koniunkcyjnej postaci normalnej}, czyli jako koniunkcja alternatyw. Wygląda ona następująco:
+\[
+(p_{i^0_0} \lor p_{i^0_1} \lor p_{i^0_2} \lor \ldots) \land (p_{i^1_0} \lor p_{i^1_1} \lor p_{i^1_2} \lor \ldots) \land \ldots \land (p_{i^n_0} \lor p_{i^n_1} \lor p_{i^n_2} \lor \ldots) 
+\]
+
+\subsection{Naturalna dedukcja}
+Aby pokazać, że dana formuła jest twierdzeniem (tautologią), można przeprowadzić dowód przy pomocy \textbf{naturalnej dedukcji}.
+
+Dowód w naturalnej dedukcji polega na wyprowadzaniu kolejnych wniosków z przyjętych wcześniej założeń. Każdy dowód jest skończonym ciągiem wniosków postaci "ponieważ $A$, to $B$". Rozważać będziemy dowody w stylu Gentzena. System ten rozważa osądy postaci $\Gamma \vdash \phi$, gdzie $\Gamma$ to \textbf{zbiór założeń}, zaś $\phi$ to \textbf{cel dowodowy}. Dowody w stylu Gentzena będziemy układać w skończone drzewa przy pomocy \textbf{reguł naturalnej dedukcji}:
+
+\begin{prooftree}
+\AxiomC{}
+\RightLabel{(Ax)}
+\UnaryInfC{$\Gamma \cup \{\phi\} \vdash \phi$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Gamma \vdash A$}
+\AxiomC{$\Gamma \vdash B$}
+\RightLabel{(W $\land$)}
+\BinaryInfC{$\Gamma \vdash A \land B$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Gamma \vdash A \land B$}
+\RightLabel{(E $\land$)}
+\UnaryInfC{$\Gamma \vdash A$}
+\end{prooftree}
+
+\begin{prooftree}
+\AxiomC{$\Gamma \vdash A \land B$}
+\RightLabel{(E $\land$)}
+\UnaryInfC{$\Gamma \vdash B$}
+\end{prooftree}
+
+% TODO: dokończyć
+\begin{editorsnote}
+    Rozdział nie jest jeszcze dokończony, jednak zawarta tu teoria jest wystarczająca do rozwiązania zadań z przeanalizowanych na potrzeby tego repetytorium archiwalnych egzaminów.
+\end{editorsnote}
+
+\begin{problems}
+    \prob W klasycznym rachunku zdań ze spójnikami $\land$, $\lor$, $\neg$, $\Rightarrow$
+    \answers{formuła $(p \Rightarrow (q \land w )) \Rightarrow (q \lor \neg p)$ jest spełnialna}{każda formuła zdaniowa bez negacji jest spełnialna}{każda formuła zdaniowa bez negacji jest prawdziwa}
+\end{problems}
+
+% Filip
+\section{Logika pierwszego rzędu}
+
+Przez \textbf{sygnaturę} rozumiemy pewien (zwykle skończony) zbiór symboli relacyjnych i funkcyjnych, każdy z~ustaloną liczbą argumentów. \textbf{Arnością} symbolu nazwiemy liczbę argumentów, jakie przyjmuje. Szczególnym przypadkiem są symbole funkcyjne arności 0, które przyjmują tylko jedną wartość. Takie symbole będziemy nazywać \textbf{stałymi}.
+
+\textbf{Modelem} sygnatury nazwiemy niepusty zbiór (zwany dziedziną lub nośnikiem struktury) wraz z interpretacją symboli z sygnatury jako funkcji i relacji o odpowiedniej liczbie argumentów. Formalniej, dla sygnatury o~symbolach funkcyjnych $f_0, f_1, \ldots, f_n$ i symbolach relacyjnych $r_0, r_1, \ldots, r_n$, modelem będzie krotka:
+\[
+\mathcal{A} = \langle A, f^{\mathcal{A}}_0, f^{\mathcal{A}}_1, \ldots, f^{\mathcal{A}}_n, r^{\mathcal{A}}_0, r^{\mathcal{A}}_1, \ldots, r^{\mathcal{A}}_n \rangle,
+\]
+gdzie dla każdego $i$:
+\begin{itemize}
+\item $f^{\mathcal{A}}_i: A^k \to A$, gdzie $k$ to arność $f_i$,
+\item $r^{\mathcal{A}}_i \subseteq A^k$, gdzie $k$ to arność $r_i$.
+\end{itemize}
+
+\begin{example}
+Rozważmy sygnaturę $\Sigma = \{ +, \cdot, 0, 1, \leqslant \}$, gdzie $+, \cdot$ to dwuargumentowe symbole funkcyjne, $0, 1$ to stałe, a $\leqslant$ to dwuargumentowy symbol relacyjny. Przykładowymi modelami dla tej sygnatury są: 
+\begin{itemize}
+\item $\mathcal{R} = \langle \mathbb{R}, +, \cdot, 0, 1, \leqslant \rangle$ -- zbiór liczb rzeczywistych z klasycznymi operacjami dodawania/mnożenia i klasycznym porządkiem,
+\item $\mathcal{N} = \langle \mathbb{N}, +, \cdot, 0, 1, \leqslant \rangle$ -- zbiór liczb naturalnych z klasycznymi operacjami dodawania/mnożenia i klasycznym porządkiem,
+\item $\mathcal{P} = \langle \pot{\mathbb{N}}, \cup, \cap, \varnothing, \pot{\mathbb{N}}, \subseteq \rangle$ -- rodzina podzbiorów $\mathbb{N}$ z operacjami sumy/przecięcia i porządkiem poprzez inkluzję.
+\end{itemize}
+\end{example}
+
+Niech $V$ będzie zbiorem \textbf{zmiennych}, które są symbolami różnymi od elementów sygnatury. \textbf{Termem} nazwiemy wyrażenie zbudowane ze zmiennych i symboli funkcyjnych. \textbf{Formułę logiki pierwszego rzędu} zdefiniujemy indukcyjnie:
+\begin{itemize}
+\item \textbf{Symbole atomowe}, czyli $\top$, $\bot$ i wyrażenia postaci $r(t_0, \ldots, t_n)$, gdzie $r$ to symbol relacyjny, a $t_i$ to termy, są formułami.
+\item Formuły połączone klasycznymi spójnikami logicznymi są formułami.
+\item $\forall x : \phi$ oraz $\exists x : \phi$ są formułami, gdzie $x$ to zmienna, $\phi$ to formuła, a $\forall$ i $\exists$ nazywamy odpowiednio \textbf{kwantyfikatorem ogólnym} i \textbf{egzystencjalnym}. 
+\end{itemize}
+
+Zbiorem \textbf{zmiennych wolnych} formuły jest zbiór zmiennych, które nie są związane przez jakiś kwantyfikator.
+
+Dla formuł logiki pierwszego rzędu również istnieje postać normalna, zwana \textbf{preneksową postacią normalną}. Formuła jest w takiej postaci, jeśli wygląda następująco:
+\[
+Q_0 x_0 Q_1 x_1 \ldots Q_n x_n \phi,
+\]
+gdzie $Q_i$ to kwantyfikatory, a $\phi$ to formuła bez kwantyfikatorów. Każda formuła daje się przedstawić w powyższej postaci.
+
+\begin{solutions}
+    % Patryk
+    \sol Dana jest rodzina zbiorów $A$ oraz zbiory $X, Y$ takie, że $X \in A$. Prawdą jest, że
+    \answerss{$(Y \subseteq X) \Rightarrow (Y \subseteq \bigcup A)$}{$\bigcap A \subseteq \bigcup A$}{$(Y \subseteq X) \Rightarrow (\bigcap A \subseteq Y$)}{TAK}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item $X \subseteq \bigcup A$, więc oczywiście zachodzi $Y \subseteq \bigcup A$.
+        \item Wprost z definicji iloczynu i sumy uogólnionej.
+        \item Niech $Y = \{1\}, X = \{1,2\}$ oraz $A = \{\{1,2\},\{2,3\}\}$. Wówczas $\bigcap A = \{2\}$ i nie zachodzi $\bigcap A \subseteq Y$.
+    \end{enumerate}
+
+    % Kasia K
+    \sol Dane są trzy funkcje $f: A \rightarrow B$, $g: B \rightarrow C$ i $h: C \rightarrow D$, których złożenie $h \circ g \circ f: A \rightarrow D$ jest bijekcją. Wynika z tego, że
+    \answerss
+    {$f$ jest funkcją różnowartościową (injekcją)}
+    {$g$ jest bijekcją}
+    {$h$ jest na $D$ (surjekcją)}
+    {TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Dowód nie wprost:
+        
+        Załóżmy, że funkcja $f$ nie jest różnowartościowa, czyli istnieją takie $x, y \in A$ i $z \in B$ dla których zachodzi $f(x) = z = f(y)$. Niezależnie od definicji $g$ i $h$ istnieje takie $w \in D$ dla którego $h(g(z)) = w$. Otrzymujemy więc, że $h(g(f(x))) = h(g(z)) = w = h(g(f(y))$, z czego wynika, że złożenie $h \circ g \circ f$ nie jest injekcją, a co za tym idzie, nie jest także bijekcją. Uzyskanie sprzeczności z przyjętym wcześniej założeniem pozwala wywnioskować, że było ono fałszywe, a zatem funkcja $f$ musi być różnowartościowa.
+        
+        \item Kontrprzykład: zdefiniujemy zbiory: $A = D = \{ 0\}$, $B = C = \NN$ oraz funkcje: $f(x) = x$, $g(x) = 0$, $h(x) = 0$. Jak łatwo zauważyć, złożenie $h \circ g \circ f$ jest bijekcją, a funkcja $g$ nie jest ani injekcją, ani surjekcją, a więc tym bardziej nie jest bijekcją.
+        
+        Dodatkowo, ten kontrprzykład pokazuje, że funkcja $f$ nie musi być ,,na'', a funkcja $h$ nie musi być różnowartościowa.
+        \item Jeżeli złożenie $h \circ g \circ f$ jest bijekcją, to wszystkie elementy ze zbioru $D$ muszą być osiągane. Aby to zachodziło, w szczególności funkcja $h$ (jako ostatnia aplikowana) musi przyjmować wszystkie elementy ze zbioru $D$, czyli musi być surjekcją.
+    \end{enumerate}
+
+    % Filip
+    \sol Dana jest funkcja $f: \NN \to \NN$. Niech $f^{2019}$ będzie 2019-krotnym złożeniem funkcji $f$. Prawdą jest, że
+    \answerss{$f$ jest injekcją $\Leftrightarrow f^{2019}$ jest injekcją}{$f$ jest surjekcją $\Leftrightarrow f^{2019}$ jest surjekcją}{$f(42) = 42 \Leftrightarrow f^{2019}(42) = 42$}{TAK}{TAK}{NIE}
+    
+    W podpunkcie $\mathbf{A.}$ jasne jest, że składanie funkcji różnowartościowych daje funkcje różnowartościowe, co daje nam implikację w prawą stronę. Udowodnijmy implikację w lewą stronę. Przypuśćmy przeciwnie, że $f$ nie jest injekcją. Zatem istnieją $x, y$, że $f(x) = f(y)$. Ale to też znaczy, że $f^{2018}(f(x)) = f^{2018}(f(y))$, czyli $f^{2019}(x) = f^{2019}(y)$ -- sprzeczność.
+
+    W podpunkcie $\mathbf{B.}$ jasne jest, że składanie surjekcji daje surjekcje. Pokażemy implikację w lewą stronę. Zauważmy, że $f^{2019}(x) = f(f^{2018}(x))$. Niech $y \in \mathbb{N}$. Ponieważ $f^{2019}$ jest surjekcją, to istnieje takie $x \in \mathbb{N}$, że $f^{2019}(x) = y$. Ale również $f^{2019}(x) = f(f^{2018}(x)) = y$. Zatem $f$ osiąga wartość $y$. Z dowolności $y$ mamy, że $f$ jest ,,na''.
+
+    W podpunkcie $\mathbf{C.}$ implikacja w prawą stronę jest trywialna -- jeśli $f(42) = 42$, to $42$ jest punktem stałym funkcji $f$, zatem nieważne ile razy nałożymy $f$ na $42$, nadal otrzymamy wartość $42$. Nie zachodzi jednak implikacja w lewo. Kontrprzykład: $f = \lambda x . x + 1 \ \text{mod} \ 2019$.
+
+    % Jasiek
+    \sol Jeśli $f : A \rightarrow B$ jest różnowartościowa, to funkcja obrazu $f^{\rightarrow} : \mathcal{P}(A) \rightarrow \mathcal{P}(B)$
+    \answerss
+    {jest różnowartościowa}
+    {jest funkcją odwrotną do funkcji przeciwobrazu $f^{\leftarrow} : \mathcal{P}(B) \rightarrow \mathcal{P}(A)$}
+    {spełnia warunek $ \bigcup \{f^{\rightarrow}(Z): Z \in \mathcal{L}\} = f^{\rightarrow} (\bigcup \mathcal{L})$ dla dowolnej rodziny $\mathcal{L} \subseteq \mathcal{P}(A)$}
+    {TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Rozważmy dwa różne podzbiory $A_1, A_2 \subseteq A$, b.s.o. $\exists a \in A_2 - A_1$. Wtedy $f(a) \in f^{\rightarrow}(A_2)$ oraz $f(a) \notin f^{\rightarrow}(A_1)$, a więc $f^{\rightarrow}$ jest różnowartościowa.
+
+        \item Rozważmy $f : \NN \to \NN$ zdefiniowaną wzorem $f(n) = n + 1$ oraz niech $B = \{0, 1\}$. Wtedy $f^{\leftarrow}(B) = \{0\}$, ale $f^{\rightarrow}(\{0\}) = \{1\} \neq B$.
+
+        \item Aby uniknąć pełnego dowodu, zastanówmy się, co oznacza dana równość. Po jej lewej stronie mamy sumę po obrazach zbiorów z rodziny $\mathcal{L}$. Zatem tworzymy zbiór wartości możliwych do uzyskania poprzez aplikację $f$ na elementach każdego $Z \in \mathcal{L}$. Oczywiście jest to równoważne zapisowi $f^{\rightarrow} (\bigcup \mathcal{L})$.
+    \end{enumerate}
+
+    % Jasiek
+    \sol Niech $f$ będzie funkcją ze zbioru $A$ w zbiór $B$. Wynika z tego, że
+    \answerss
+    {obraz zbioru $A$ przy funkcji $f$ to zbiór $B$}
+    {przeciwobraz zbioru $B$ przy funkcji $f$ to zbiór $A$}
+    {jeśli $X$ jest niepustym podzbiorem $B$, to przeciwobraz zbioru $X$ przy funkcji $f$ jest niepusty}
+    {NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Jeśli funkcja $f$ nie jest surjekcją, to obraz całej dziedziny nie jest całą przeciwdziedziną, np. dla $f: \NN \to \NN$, $f(n) = n + 1$ obrazem $\NN$ będzie $\NN - \{0\}$.
+
+        \item Ponieważ dla każdego elementu z dziedziny $A$ funkcja jest określona (wynika to bezpośrednio z definicji funkcji), więc biorąc jako przeciwobraz całe $B$ na pewno uzyskamy całe $A$.
+
+        \item Możemy rozważyć $f$ z podpunktu \textbf{A.} oraz niepusty zbiór $X = \{0\}, \; X \subseteq \NN$. Wtedy przeciwobraz $X$ przy $f$ jest pusty.
+    \end{enumerate}
+
+    % Michał
+    \sol Niech $A$ będzie dowolnym zbiorem i niech $s,r\subseteq A\times A$ będą relacjami. Jeśli $s$ i $r$ są
+    \answerss{zwrotne, to $s\cup r$ jest relacją zwrotną}{symetryczne, to $s\cup r$ jest relacją symetryczną}{przechodnie, to $s\cup r$ jest relacją przechodnią}{TAK}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Skoro $s$ oraz $r$, są zwrotne, to dla każdego $a$ element $\langle a, a \rangle$ należy do obu relacji, a więc też do ich sumy.
+
+        \item Weźmy dowolne $\langle x, y \rangle \in s \cup r$. Ten element musi też należeć do co najmniej jednej relacji $s$ i $r$. Bez straty ogólności załóżmy, że $\langle x, y \rangle \in s$. Z symetryczności jest też $\langle y, x \rangle \in s$, więc $\langle y, x \rangle \in s \cup r$.
+
+        \item Kontrprzykład: $A = \mathbb{N}$, $s = \{ \langle 1, 2 \rangle \}, r = \{ \langle 2, 3 \rangle \}$. Z przechodniości $\langle 1, 3 \rangle$ powinno należeć do $s \cup r$, a tak nie jest.
+    \end{enumerate}
+
+    % Filip
+    \sol Niech $f:A\rightarrow B$ będzie funkcją ,,na'' $B$ i niech $s_A$ będzie relacją równoważności na $A$. Przez $f^{-1}(X)$ oznaczamy przeciwobraz $X$ przy $f$. Następująca relacja $r$ jest relacją równoważności na $B$:
+    \answerss{$b\ r\ b'$ wtedy i tylko wtedy, gdy $f^{-1}(\{b\})\cup f^{-1}(\{b'\})$ jest pewną klasą abstrakcji relacji $s_A$}{$b\ r\ b'$ wtedy i tylko wtedy, gdy istnieją $a,a'\in A$ takie, że $a\in f^{-1}(\{b\})$ i $a'\in f^{-1}(\{b'\})$ oraz $a\ s_A\ a'$}{$b\ r\ b'$ wtedy i tylko wtedy, gdy dla każdych $a,a'\in A$ takich, że $a\in f^{-1}(\{b\})$ i $a'\in f^{-1}(\{b'\})$, zachodzi $a\ s_A\ a'$}{NIE}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Badana relacja nie jest relacją równoważności, bo w ogólności nie musi być zwrotna -- nie musi zachodzić, że dla dowolnego $b \in B$ zbiór $f^{-1}(\{b\})$ jest pewną klasą abstrakcji $s_A$. Na przykład: $A = B = \mathbb{N}$, $f = \text{id}_{\mathbb{N}}$, $s_A = \mathbb{N} \times \mathbb{N}$.
+
+        \item Rozważmy zbiory $A = \{1, 2, 3, 4\}$ oraz $B = \{1, 2, 3\}$, funkcję $f$ zdefiniowaną następująco:
+        $$f(1) = 1, \quad f(2) = 2, \quad f(3) = 2, \quad f(4) = 3$$
+        oraz relację $s_A$ wyznaczoną przez klasy abstrakcji $\{1, 2\}, \{3, 4\}$.
+        
+        Wtedy 1 jest w relacji $r$ z 2 (ponieważ $f^{-1}(\{1\}) = \{1\}, f^{-1}(\{2\}) = \{2, 3\}$ i 1 jest w relacji $s_A$ z 2, więc przyjmując $a = 1, a' = 2$ spełniony jest warunek z podpunktu) oraz 2 jest w relacji $r$ z 3 (ponieważ $f^{-1}(\{2\}) = \{2, 3\}, f^{-1}(\{3\}) = \{4\}$ i 3 jest w relacji $s_A$ z 4, więc dla $a = 3, a' = 4$ warunek jest spełniony). Natomiast 1 nie jest w relacji $r$ z 3, ponieważ $f^{-1}(\{1\}) = \{1\}, f^{-1}(\{3\}) = \{4\}$, a 1 nie jest w relacji $s_A$ z 3.
+        
+        Podsumowując powyższe rozważania, zachodzi $1 \ r \ 2$ oraz $2 \ r \ 3$, ale nie zachodzi $1 \ r \ 3$. Relacja $r$ nie jest więc przechodnia, a co za tym idzie -- nie jest też relacją równoważności.
+
+        \item Mamy tu do czynienia z relacją równoważności, co pokażemy wprost z definicji:
+        \begin{itemize}
+            \item \textit{Zwrotność}. Niech $b \in B$. Pokażemy, że $b \ r \ b$. Musimy pokazać, że dla każdego $a \in f^{-1}(\{b\})$ zachodzi $a \ s_A \ a$. To jest oczywiście prawda, bo $s_A$ jest relacją równoważności, więc jest zwrotna.
+            
+            \item \textit{Symetryczność}. Niech $b, b' \in B$ takie, że $b \ r \ b'$. Pokażemy, że $b' \ r \ b$. Z założenia mamy, że dla każdych $a, a' \in A$, takich że $a\in f^{-1}(\{b\})$ i $a'\in f^{-1}(\{b'\})$ zachodzi $a \ s_A \ a'$. Musimy pokazać, że dla każdych $x, y \in A$, takich że $x\in f^{-1}(\{b'\})$ i $y\in f^{-1}(\{b\})$ zachodzi $x \ s_A \ y$. Zbiory $f^{-1}(\{b'\})$ i~$f^{-1}(\{b\})$ są niepuste, zatem weźmy dowolne takie $x, y$ i pokażmy, że $x \ s_A \ y$. Z wniosku z założenia, przyjmując $a = y$ i $a' = x$, mamy $y \ s_A \ x$. Ale $s_A$ jest relacją równoważności, więc jest też symetryczna, czyli $x \ s_A \ y$. Z dowolności $x, y$ dostajemy $b' \ r \ b$.
+            
+            \item \textit{Przechodniość}. Niech $b, b', b'' \in B$ takie, że $b \ r \ b'$ oraz $b' \ r \ b''$. Pokażemy, że $b \ r \ b''$. Z założenia mamy, że:
+            \begin{enumerate}
+                \item $\forall a, a' \in A \ : \ a\in f^{-1}(\{b\})$ i $a'\in f^{-1}(\{b'\}) \Rightarrow a \ s_A \ a'$,
+                \item $\forall a', a'' \in A \ : \ a'\in f^{-1}(\{b'\})$ i $a''\in f^{-1}(\{b''\}) \Rightarrow a' \ s_A \ a''$.
+            \end{enumerate}
+            Musimy pokazać, że dla każdych $x, y \in A$ takich, że $x\in f^{-1}(\{b\})$ i $y\in f^{-1}(\{b''\})$ zachodzi $x \ s_A \ y$. Ponieważ te przeciwobrazy są niepuste ($f$ jest ,,na''), weźmy dowolne $x, y$ spełniające pierwsze warunki. Musimy pokazać, że $x \ s_A \ y$. Weźmy dowolne $z \in f^{-1}(\{b'\})$. Z założeń i warunków (a)~i~(b)~mamy, że $x \ s_A \ z$ oraz $z \ s_A \ y$. Ale $s_A$ jest przechodnia, zatem $x \ s_A \ y$.
+        \end{itemize}
+    \end{enumerate}
+
+    % Patryk
+    \sol $r$ jest relacją równoważności na liczbach naturalnych dodatnich określoną w następujący sposób: liczby $x$ i $y$ są w relacji $r$ wtedy i tylko wtedy, gdy zbiory dzielników pierwszych liczb $x$ i $y$ są takie same. Wynika z tego, że
+    \answerss{wszystkie klasy abstrakcji relacji $r$ są nieskończone}{wszystkie klasy abstrakcji relacji $r$ są równoliczne}{zbiór ilorazowy relacji $r$ jest skończony}{NIE}{NIE}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Klasa abstrakcji, do której należy ,,1'', jest jednoelementowa, bo żadna inna liczba nie posiada pustego zbioru dzielników pierwszych.
+
+        \item Klasa abstrakcji, do której należy ,,1'', jest jednoelementowa, a wszystkie inne są nieskończone.
+
+        \item Istnieje nieskończenie wiele klas abstrakcji, ponieważ każda klasa abstrakcji ma swojego reprezentanta w zbiorze potęgowym zbioru liczb pierwszych. Moc takiego zbioru jest oczywiście nieskończona.
+    \end{enumerate}
+
+    % Błażej
+    \sol W zbiorze $5$-elementowym
+    \answerss{każda relacja przechodnia ma moc co najmniej $3$}{każda relacja przechodnia ma moc co najwyżej $25$}{istnieje relacja przechodnia o mocy równej $24$}{NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Odwołując się do definicji przechodniości ($\forall_{x, y, z \in A} \; x \; r \; y \land y \; r \; z \Rightarrow x \; r \; z$), kontrprzykładem jest m.in. relacja pusta.
+
+        \item Każda relacja w zbiorze 5-elementowym ma moc co najwyżej 25 (nie da się utworzyć 26. pary), więc w szczególności każda relacja przechodnia także ma tę własność.
+
+        \item Skoro maksymalna relacja $r_{max}$ (tj. taka, że każdy element jest w relacji z każdym) w zbiorze 5-elementowym jest mocy 25, to spróbujemy utworzyć relację przechodnią, zabierając jedną parę z maksymalnej relacji. Zauważmy jednak, że jeśli $a, b, c$ to (niekoniecznie różne) elementy pierwotnego 5-elementowego zbioru, a my usuniemy z $r_{max}$ parę $\lr{a, b}$, to wciąż istnieją w niej pary $\lr{a, c}$ oraz $\lr{c, b}$, więc nie uzyskujemy przechodniości. Z ogólności rozważań wynika, że nie da się utworzyć relacji przechodniej o mocy 24.
+    \end{enumerate}
+
+    % Kasia K
+    \sol Niech $r$ będzie relacją równoważności na niepustym zbiorze $A$. Wynika z tego, że
+    \answerss
+    {każda klasa abstrakcji relacji $r$ jest niepusta}
+    {dowolne dwie różne klasy abstrakcji relacji $r$ są rozłączne}
+    {suma zbioru klas abstrakcji relacji $r$ jest równa $A$}
+    {TAK}{TAK}{TAK}
+
+    Ponieważ zbiór ilorazowy (zbiór klas abstrakcji) relacji równoważności można utożsamić z podziałem zbioru, to każdy z punktów można utożsamić z konkretnym jego warunkiem:
+    \begin{enumerate}[\bf A.]
+        \item $\forall_{p \in P} \; p \neq \varnothing$
+        \item $\forall_{p, q \in P} \; p = q \lor p \cap q = \varnothing$
+        \item $\bigcup P = A$
+    \end{enumerate}
+    
+    % Błażej
+    \sol Każdy podzbiór $\mathbb{R}$ o mocy continuum
+    \answerss{zawiera przedział otwarty}{jest nieograniczony}{ma przeliczalne dopełnienie}{NIE}{NIE}{NIE}
+
+    Pokażemy kontrprzykłady do każdego podpunktu:
+    \begin{enumerate}[\bf A.]
+        \item $\RR - \QQ$
+        \item $(0, 1)$
+        \item $(0, 1)$
+    \end{enumerate}
+
+    \sol Istnieje nieskończenie wiele funkcji z liczb naturalnych w liczby naturalne, dla których
+    \answerss{obrazem zbioru $\{1,2\}$ jest zbiór pusty}{obrazem zbioru $\{1,2\}$ jest zbiór $\{2,3,4\}$}{przeciwobrazem zbioru $\{1,2\}$ jest zbiór pusty}{NIE}{NIE}{TAK}
+    
+    Mamy do czynienia z funkcjami $f \ : \ \NN \to \NN$.
+    \begin{enumerate}[\bf A.]
+        \item Mamy $f(\{1,2\}) = \{ f(1), f(2)\}$. Ponieważ $f$ jest określone dla każdej liczby naturalnej, obraz $\{1,2\}$ nie może być pusty.
+
+        \item Obraz zbioru $\{1,2\}$ ma maksymalnie dwie wartości. Nie może zatem być równy $\{2,3,4\}$.
+
+        \item Przeciwobraz to $f^{-1}(\{1,2\}) = \{ a\in \NN \ | \ f(a)\in \{1,2\}\}$. Oczywiście, przeciwobraz tego zbioru może być pusty. Wystarczy rozpatrzeć funkcje $f(n)=n+k$ dla wszystkich $k > 3$, jest ich nieskończenie wiele.
+    \end{enumerate}
+
+    % Grześ
+    \sol Równoliczne są
+    \answerss{zbiór liczb naturalnych i zbiór liczb wymiernych}{zbiór liczb rzeczywistych i zbiór potęgowy zbioru liczb naturalnych}{zbiór ciągów nieskończonych o wyrazach ze zbioru $\{0,1\}$ i zbiór ciągów nieskończonych o~wyrazach ze zbioru liczb naturalnych}{TAK}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Obydwa są mocy $\alef$.
+        \item Obydwa są mocy $\cont$.
+        \item Obydwa są mocy $\cont$.
+    \end{enumerate}
+
+    % Grześ
+    \sol Zbiorem mocy continuum jest
+    \answerss
+    {zbiór liczb naturalnych}
+    {zbiór potęgowy zbioru liczb naturalnych}
+    {zbiór liczb niewymiernych}
+    {NIE}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Zbiór $\NN$ jest mocy $\alef$.
+        \item Zbiór $\pot{\NN}$ jest mocy $2^\NN$, czyli $\cont$.
+        \item Zbiór liczb niewymiernych to $\RR-\QQ$. Skoro $\RR$ jest mocy $\cont$, a $\QQ$ mocy $\alef$, to zbiór liczb niewymiernych musi być mocy $\cont$.
+    \end{enumerate}
+    
+    % Julia
+    \sol Dla $x \in \mathbb{N}$ niech $J(x)$ oznacza liczbę jedynek występujących w zapisie binarnym liczby $x$. Relacją częściowego porządku w $\mathbb{N}$ jest relacja
+    \answerss{$\{\langle x,y \rangle \in \mathbb{N} \times \mathbb{N} : J(x) \leq J(y)\}$}{$\{\langle x,y \rangle \in \mathbb{N} \times \mathbb{N} : J(x) < J(y)$ lub $x=y\}$}{$\{\langle x,y \rangle \in \mathbb{N} \times \mathbb{N} : J(x) < J(y)$ lub $x\leq y\}$}{NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Nie jest to relacja częściowego porządku, ponieważ nie jest antysymetryczna. Na przykład, liczby $1$~i~$2$~mają w~zapisie binarnym tyle samo jedynek, ale nie są to te same liczby.
+
+        \item Ta relacja jest częściowym porządkiem i aby to udowodnić, pokażemy, że jest ona zwrotna, antysymetryczna i przechodnia.
+        \begin{itemize}
+            \item \textit{Zwrotność.} Bezpośrednio z definicji relacji.
+            \item \textit{Antysymetryczność.} Rozważamy cztery przypadki. Pierwszy z nich, to że dla pewnego $x, y$ z definicji antysymetryczności $x r y$ oraz $y r x$, gdy $x=y$ oraz $y=x$. Wtedy oczywiście relacja antysymetryczna. Podobnie dla przypadków, gdy $x r y$ lub $y r x$ to odpowiednio $x=y$ lub $y=x$. Przypadek z $J(x) < J(y) \land J(y) < J(x)$ nie może natomiast zachodzić. Zatem relacja jest antysymetryczna.
+            \item \textit{Przechodniość.} Podobne przypadki jak dla antysymetryczności: dla $J(x) < J(y) \wedge J(y) < J(z)$ (gdzie $x, y, z$ jak w definicji przechodniości) zachodzi oczywiście $J(x) < J(z)$. Podobnie jest dla przypadków $J(x) < J(y) \wedge y=z$ oraz $x=y \wedge J(y) < J(z)$. Dla $x=y \wedge y=z$ mamy natomiast $x=z$. Zatem relacja ta jest przechodnia.
+        \end{itemize}
+        
+        \item Nie jest to relacja częściowego porządku, ponieważ nie jest antysymetryczna. Przykładem mogą być liczby $4$ i $3$: $4$ jest w relacji z $3$, ponieważ w zapisie binarnym $4$ ma mniej jedynek niż $3$ oraz $3$ jest w relacji z $4$, ponieważ jest od niej mniejsza. Jednak nie są to te same liczby, zatem nie jest spełniona antysymetryczność.
+    \end{enumerate}
+
+    % Julia
+    \sol Istnieje relacja równoważności na $\pot{\mathbb{N}}$, taka że
+    \answerss{jest częściowym porządkiem}{ma więcej niż continuum klas abstrakcji}{jej dopełnienie też jest relacją równoważności na $\pot{\NN}$}{TAK}{NIE}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Możemy wziąć relację taką, że $x$ jest w relacji tylko z samym sobą (relacja $\lr{\pot{\NN}, =}$). Jest to oczywiście relacja równoważności oraz taka relacja na $\pot{\NN}$ jest częściowym porządkiem.
+
+        \item Nie jest to możliwe, ponieważ mamy tylko continuum elementów.
+
+        \item Nie jest to możliwe, ponieważ z definicji relacji równoważności, musi ona być zwrotna. Dopełnienie relacji równoważności na $\pot{\NN}$ nie będzie już tego spełniało.
+    \end{enumerate}
+
+    \sol Zbiór $A$ ma moc $\alef$. Wynika z tego, że w częściowym porządku $\langle\mathcal{P}(A),\subseteq\rangle$
+    \answerss{każdy podzbiór ma kres górny}{istnieje łańcuch o mocy continuum}{istnieje antyłańcuch o mocy continuum}{TAK}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Tak, jest to suma elementów maksymalnych tego podzbioru
+
+        \item Niech $A = \mathbb{Q}$. Weźmy funkcję $f : \mathbb{R} \to \mathcal{P}(\mathbb{Q})$ taką, że $f(r) = \{ x \in \mathbb{Q} \mid x < r \}$. Funkcja ta jest izomorfizmem -- $a < b$ wtw. $f(a) \subseteq f(b)$. W dodatku jest różnowartościowa, zatem $f(\mathbb{R})$ jest mocy continuum i jest szukanym łańcuchem.
+
+        \item Weźmy nieskończone, ukorzenione, pełne drzewo binarne z wierzchołkami ponumerowanymi liczbami naturalnymi. Niech każda nieskończona ścieżka w oczywisty sposób generuje podzbiór $\mathbb{N}$. Rodzina wszystkich takich podzbiorów jest szukanym antyłańcuchem -- żadne dwie ścieżki nie generują porównywalnych podzbiorów, bo to by znaczyło, że jedna ścieżka zawiera się w drugiej, co nie jest możliwe.
+
+        Inny przykład -- weźmy funkcję $f : \mathbb{R} \to \mathcal{P}(\mathbb{Q})$ taką, że $f(x) = (x, x+1)$ (przedział w liczbach wymiernych). Żadne takie dwa przedziały nie są porównywalne, ponadto jest ich continuum wiele, bo $\mathbb{R}$ jest mocy continuum, a $f$ jest różnowartościowa. 
+    \end{enumerate}
+
+    % Grześ
+    \sol Relacja na zbiorze $A$: $\{\langle x, x\rangle \ | \ x \in A\}$ jest
+    \answerss
+    {relacją równoważności}
+    {relacją częściowego porządku}
+    {przechodnia}
+    {TAK}{TAK}{TAK}
+
+    Zadanie jest proste, jeśli uświadomimy sobie, że owa relacja to relacja $\lr{A, =}$.
+    \begin{enumerate}[\bf A.]
+        \item W oczywisty sposób widać, że relacja jest zwrotna, symetryczna i przechodnia, a więc jest relacją równoważności.
+
+        \item Wiemy już, że relacja jest zwrotna i przechodnia. Widzimy, że jest również antysymetryczna, więc jest to relacja częściowego porządku.
+
+        \item Wprost z definicji przechodniości.
+    \end{enumerate}
+
+    \sol Rozpatrzmy zbiór funkcji różnowartościowych z $\NN$ w $\NN$, uporządkowany ,,po współrzędnych'', tj. $f \preceq g$ wtedy i tylko wtedy, gdy dla każdego $n \in \NN$ zachodzi $f(n) \leq g(n)$. W tym porządku
+    \answerss
+    {każdy niepusty podzbiór ma kres dolny}
+    {istnieje antyłańcuch mocy continuum}
+    {istnieje łańcuch mocy continuum}
+    {NIE}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Niech $f = \mathds{1} $, a $g(0) = 1, g(1) = 0, g(n) = n$. Wówczas zbiór składający się z tych dwóch funkcji nie ma ograniczenia dolnego, więc w szczególności nie ma kresu dolnego.
+
+        \item Dla każdego podzbioru $A \subseteq \mathbb{N}$ konstruujemy funkcję $f$ następująco: $f$ jest ,,domyślnie'' funkcją identycznościową, a jeśli $x \in A$, to zamieniamy ze sobą wartości funkcji $f$ na pozycjach $2x$ i $2x + 1$. Na przykład, zbiór $\{ 0 \}$ wygeneruje funkcję, która przyjmuje kolejno wartości: $1, 0, 2, 3, 4, 5, \ldots$. Żadna taka funkcja nie jest porównywalna z żadną inną, bo jeśli dwa ciągi nie zgadzają się na jakiekolwiek pozycji, to od razu ich wygenerowane funkcje są nieporównywalne.
+
+        \item Dla każdego podzbioru $A \subseteq \mathbb{N}$ konstruujemy funkcję $f$ następująco: $f(x) = 2x$, jeśli $x \in A$, zaś $2x + 1$ wpp. Innymi słowy, jest to funkcja $\lambda x.2x$, ale gdy $x \in A$, to na tej samej pozycji wartość $f$ ,,podskakuje'' do góry o 1. Łatwo zauważyć, że takie mapowanie dobrze modeluje zbiór $\mathcal{P}(\mathbb{N})$ (bo po ,,podskokach'' łatwo wywnioskować wyjściowy zbiór). Zatem, dwie tak wygenerowane funkcje są porównywalne wtw. ich początkowe podzbiory $\mathbb{N}$ były porównywalne ze względu na zawieranie. Na koniec weźmy dowolny antyłańcuch $X$ w zbiorze $\mathcal{P}(\mathbb{N})$ ze względu na relację $\subseteq$. Wtedy wystarczy każdy element $X$ zmapować na funkcję tak, jak opisano powyżej.
+    \end{enumerate}
+    
+    \sol Porządek leksykograficzny jest dobrze ufundowany na
+    \answerss{$\mathbb{N}^k$ dla każdego $k \in \mathbb{N}$}{$\mathbb{N}^*$ -- zbiór skończonych ciągów liczb naturalnych}{$\mathbb{Q}^k$ dla każdego $k \in \mathbb{N}$}{TAK}{NIE}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item To po prostu fakt, który trzeba pamiętać.
+
+        \item Można utworzyć ciąg nieskończenie zstępujący: $(1), (0, 1), (0, 0, 1), \ldots$.
+
+        \item $\mathbb{Q}$ przy zwykłym porządku nie jest dobrze ufundowany, więc to też nie jest (szczególny przypadek dla $k = 1$).
+    \end{enumerate}
+
+    % Wiktor
+    \sol Każdy porządek częściowy można rozszerzyć do porządku
+    \answerss{liniowego}{dobrze ufundowanego}{dobrego}{TAK}{NIE}{NIE}
+    
+    \begin{enumerate}[\bf A.]
+        \item Wystarczy dodać porównania między brakującymi elementami tak, żeby w interpretacji grafowej (diagramie Hassego) porządku z każdego węzła dało się do dowolnego innego dojść, startując w jednym z nich.
+        \item Kontrprzykład: $\lr{\ZZ, \leq}$ jest częściowym (a nawet liniowym) porządkiem, ale niezależnie od tego, jak go rozszerzymy, zawsze będzie istnieć nieskończony ciąg malejący.
+        \item Rozumowanie analogiczne jak w \textbf{B.}
+    \end{enumerate}
+
+    \sol W klasycznym rachunku zdań ze spójnikami $\land$, $\lor$, $\neg$, $\Rightarrow$
+    \answerss{formuła $(p \Rightarrow (q \land w )) \Rightarrow (q \lor \neg p)$ jest spełnialna}{każda formuła zdaniowa bez negacji jest spełnialna}{każda formuła zdaniowa bez negacji jest prawdziwa}{TAK}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Wystarczy, że lewa strona implikacji jest fałszem, czyli że $p$ jest prawdą, a $q$ i $w$ fałszami.
+
+        \item Widać to, kiedy zapiszemy formułę w koniunkcyjnej postaci normalnej. Wtedy ustawiając wartości wszystkich zmiennych na ,,prawdę'', na pewno spełnimy daną formułę zdaniową.
+
+        \item Nie, bo np. $p \Rightarrow q$ nie jest prawdziwe dla $p=1$ i $q=0$.
+    \end{enumerate}
+\end{solutions}

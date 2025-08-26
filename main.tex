@@ -1,0 +1,61 @@
+\documentclass[a4paper, hidelinks]{book}
+\input{makra.tex}
+\input{style.tex}
+
+\begin{document}
+
+% Strona tytułowa
+\thispagestyle{empty}
+\newgeometry{margin = 1.5cm}
+\vspace*{\fill}
+{\fontsize{70pt}{84pt}\selectfont\sffamily\textcolor{white}{Repetytorium \\ \vspace{3mm} \\ licencjackie}} \\ \vspace{5mm} \\
+{\huge\selectfont\sffamily\bfseries\textcolor{white}{Egzamin z informatyki na MIMUW}}
+\restoregeometry
+
+\input{rozdziały/od_autorow.tex}
+\newpage
+
+% Spis treści
+\begingroup
+    \hypersetup{linkcolor = black}
+    \setcounter{tocdepth}{1} % schowanie subsekcji
+    \tableofcontents
+\endgroup
+
+% Rozdziały
+\input{rozdziały/analiza_matematyczna.tex}
+
+\input{rozdziały/geometria_z_algebra_liniowa.tex}
+
+\input{rozdziały/podstawy_matematyki.tex}
+
+\input{rozdziały/matematyka_dyskretna.tex}
+
+\input{rozdziały/rachunek_prawdopodobienstwa.tex}
+
+\input{rozdziały/algorytmy_i_struktury_danych.tex}
+
+\input{rozdziały/jezyki_automaty_i_obliczenia.tex}
+
+% Ten rozdział nie jest potrzebny (SemWer wypadł z podstawy programowej obecnego egzaminu licencjackiego), ale zostawiamy go dla potencjalnych przyszłych pokoleń.
+% \input{rozdziały/semantyka_i_weryfikacja_programow.tex}
+
+\input{rozdziały/bazy_danych.tex}
+
+\input{rozdziały/programowanie_wspolbiezne.tex}
+
+\input{rozdziały/metody_numeryczne.tex}
+
+\input{rozdziały/programowanie_obiektowe.tex}
+
+\input{rozdziały/ipp_i_blok_jnp.tex}
+
+\input{rozdziały/aplikacje_www.tex}
+
+\input{rozdziały/sieci_komputerowe.tex}
+
+\input{rozdziały/systemy_operacyjne}
+
+\input{rozdziały/bezpieczenstwo_systemow_komputerowych.tex}
+
+\end{document}

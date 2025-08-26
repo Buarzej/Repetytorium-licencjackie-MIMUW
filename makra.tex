@@ -1,0 +1,270 @@
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{polski}
+\usepackage[margin = 2.5cm]{geometry}
+\usepackage{anyfontsize}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{dsfont}
+\usepackage[shortlabels]{enumitem}
+\usepackage{mathdots}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{hyperref} % referencje do miejsc w pdfie
+\usepackage{url}
+\usepackage{xfrac} % ukośne ułamki
+\usepackage{cancel} % skracanie
+\usepackage{environ} % zaawansowane środowiska
+\usepackage{minted} % formatowanie kodu
+\usepackage{tabularx} % lepsze tabelki
+\usepackage{wrapfig} % do ustawiania pozycji obrazków
+\usepackage{multicol} % wiele kolumn
+\usepackage{bussproofs} % logika
+
+% --- Podstawowe matematyczne symbole
+\newcommand{\wtw}{\quad \Leftrightarrow \quad}  % wtedy i tylko wtedy
+\newcommand{\bigexists}{\mbox{\Large $\mathsurround0pt\exists$}\hspace{0.2em}} 
+\newcommand{\bigforall}{\mbox{\Large $\mathsurround0pt\forall$}\hspace{0.1em}}
+\newcommand{\lr}[1]{\left\langle #1 \right\rangle}
+
+% --- Oznaczenia zbiorów i grup
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\ZZ}{\mathbb{Z}}
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\CC}{\mathbb{C}}
+\newcommand{\KK}{\mathbb{K}}
+\newcommand{\QQ}{\mathbb{Q}}
+\newcommand{\GG}{\mathbb{G}}
+
+% --- Tekst w math mode
+\newcommand{\dm}[1]{\displaystyle{#1}}  % skrót do displaystyle
+\newcommand{\textq}[1]{\quad \text{#1} \quad}
+\newcommand{\textqq}[1]{\qquad \text{#1} \qquad}
+
+% --- Analiza matematyczna
+\newcommand{\Dom}{\operatorname{Dom}}
+\newcommand{\sgn}{\operatorname{sgn}}
+\newcommand{\floor}[1]{\left\lfloor #1 \right\rfloor}
+\newcommand{\ceil}[1]{\left\lceil #1 \right\rceil}
+\newcommand{\inj}{\xrightarrow[]{1-1}}
+\newcommand{\surj}{\xrightarrow[]{\text{na}}}
+\newcommand{\bij}{\xrightarrow[\text{na}]{1-1}}
+\renewcommand{\tg}{\operatorname{tg}}
+\newcommand{\arctg}{\operatorname{arctg}}
+
+\newcommand{\Sum}{\sum\limits}
+\newcommand{\sumn}{\sum_{n = 0}^{\infty}}
+\newcommand{\Sumn}{\sum\limits_{n = 0}^{\infty}}
+
+\newcommand{\Lim}{\lim\limits}
+\newcommand{\limn}{\lim_{n\to\infty}}
+\newcommand{\Limn}{\lim\limits_{n\to\infty}}
+\newcommand{\Limsup}{\limsup\limits}
+\newcommand{\limsupn}{\limsup_{n\to\infty}}
+\newcommand{\Limsupn}{\limsup\limits_{n\to\infty}}
+\newcommand{\limxy}{\lim_{(x,y) \to (0,0)}}
+\newcommand{\Limxy}{\lim\limits_{(x,y) \to (0,0)}}
+\newcommand{\limuv}{\lim_{\vect{u \\ v} \to 0}}
+\newcommand{\Limuv}{\lim\limits_{\vect{u \\ v} \to 0}}
+\newcommand{\toto}{\rightrightarrows} % jednostajna zbieżność
+
+\newcommand{\dx}{\ \textnormal{d}x}
+\newcommand{\dy}{\ \textnormal{d}y}
+\newcommand{\dz}{\ \textnormal{d}z}
+\newcommand{\dt}{\ \textnormal{d}t}
+\newcommand{\du}{\ \textnormal{d}u}
+\newcommand{\dfdx}{\frac{\partial f}{\partial x}}
+\newcommand{\dfdy}{\frac{\partial f}{\partial y}}
+
+% --- Algebra liniowa
+\renewcommand{\Re}{\operatorname{Re}}
+\renewcommand{\Im}{\operatorname{Im}}
+\newcommand{\compconj}[1]{\overline{#1}} % sprzężenie
+
+\newcommand{\spn}{\operatorname{span}}
+\newcommand{\vect}[1]{\left[\begin{smallmatrix} #1 \end{smallmatrix}\right]}
+\newcommand{\Vect}[1]{\begin{bmatrix} #1 \end{bmatrix}}
+\newcommand{\twovect}[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}}
+
+\newcommand{\im}{\operatorname{im}}
+\newcommand{\rank}{\operatorname{rank}}
+\renewcommand{\det}{\operatorname{det}}
+
+\newcommand{\norm}[1]{\left\| #1 \right\|}
+\newcommand{\emptynorm}{\norm{\hspace{0.2em} \cdot \hspace{0.2em} }}
+\newcommand{\spr}[1]{\langle #1 \rangle} % iloczyn skalarny
+
+% --- Teoria mnogości
+\newcommand{\card}[1]{\overline{\overline{#1}}} % moc zbioru
+\newcommand{\alef}{\aleph_0}
+\newcommand{\cont}{\mathfrak{C}}
+\newcommand{\pot}[1]{\mathcal{P}(#1)}     % zbiór potęgowy
+\def\pusty{\varnothing}     % zbiór pusty
+\def\puste{\varnothing}     % zbiór pusty v2
+
+% --- Matematyka dyskretna
+\newcommand{\pov}[1]{{^{\overline{#1}}}}    % górna silnia
+\newcommand{\pun}[1]{{^{\underline{#1}}}}   % dolna silnia 
+\newcommand{\firststir}[2]{\genfrac{[}{]}{0pt}{}{#1}{#2}} % liczba Stirlinga pierwszego rodzaju
+\newcommand{\secondstir}[2]{\genfrac{\{}{\}}{0pt}{}{#1}{#2}} % liczba Stirlinga drugiego rodzaju
+
+% --- Rachunek prawdopodobieństwa
+\newcommand{\rpBinom}{\operatorname{Binom}}
+\newcommand{\rpGeom}{\operatorname{Geom}}
+\newcommand{\rpPois}{\operatorname{Pois}}
+\newcommand{\rpUnif}{\operatorname{Unif}}
+\newcommand{\rpExp}{\operatorname{Exp}}
+\newcommand{\rpN}{\operatorname{N}}
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\operatorname{Var}}
+
+% --- Kolory
+\newcommand{\purple}[1]{\textcolor{purple}{#1}}
+\newcommand{\teal}[1]{\textcolor{teal}{#1}}
+\newcommand{\gray}[1]{\textcolor{gray}{#1}}
+\newcommand{\grey}[1]{\textcolor{gray}{#1}}
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\newcommand{\orange}[1]{\textcolor{orange}{#1}}
+\newcommand{\white}[1]{\textcolor{white}{#1}}
+\newcommand{\black}[1]{\textcolor{black}{#1}}
+
+% --- Wykresy
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{patterns}
+\pgfplotsset{
+    width = 7.6cm,
+    compat = 1.9,
+    xlabel = $x$,
+    ylabel = $y$,
+    axis lines = center
+}
+
+% --- Kod
+\newcommand{\complexity}[4]{\textbf{Złożoność obliczeniowa:} $\begin{cases} \text{optymistyczna: } \purple{\Omega(#1)} \\ \text{oczekiwana: } \purple{\Theta(#2)} \\ \text{pesymistyczna: } \purple{O(#3)} \end{cases}$ \textbf{oraz pamięciowa:} $\teal{O(#4)}$}
+
+\newminted[plain]{text}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+
+\newminted[cpp]{cpp}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{cpp}{}
+
+\newminted[java]{java}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{java}{}
+
+\newminted[sql]{sql}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{sql}{}
+
+\newminted[gas]{gas}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{gas}{}
+
+\newminted[js]{js}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{js}{}
+
+\newminted[html]{html}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{html}{}
+
+\newminted[css]{css}{
+    autogobble,
+    mathescape,
+    frame = leftline,
+    framerule = 1pt,
+    framesep = 8pt
+}
+\newmintinline{css}{}
+
+% --- Zadania, rozwiązania i odpowiedzi
+\newcounter{problem}
+\counterwithin{problem}{chapter}
+\newcounter{solution}
+\counterwithin{solution}{chapter}
+
+\newenvironment{problems}{
+    \begin{problemsf}
+    \begin{enumerate}
+}{
+    \end{enumerate}
+    \end{problemsf}
+}
+
+\newenvironment{solutions}{
+    \section{Rozwiązania}
+    \begin{solutionsf}
+    \begin{enumerate}
+}{
+    \end{enumerate}
+    \end{solutionsf}
+}
+
+\newcommand{\prob}{
+    \stepcounter{problem}
+    \item[\hypertarget{sol\theproblem}{} \hyperlink{prob\theproblem}{\black{\sf\textbf{\theproblem.}}}]
+}
+
+\newcommand{\sol}{
+    \stepcounter{solution}
+    \item[\hypertarget{prob\thesolution}{}\hyperlink{sol\thesolution}{\black{\sf\textbf{\thesolution.}}}]
+}
+
+\newcommand{\answers}[3]{
+    \begin{itemize}[leftmargin = 1.5cm]
+        \item[\fbox{\phantom{\texttt{TAK}}} \ \textbf{A.}] #1
+        \item[\fbox{\phantom{\texttt{TAK}}} \ \textbf{B.}] #2
+        \item[\fbox{\phantom{\texttt{TAK}}} \ \textbf{C.}] #3
+    \end{itemize}
+}
+
+\newcommand{\answerss}[6]{
+    \begin{itemize}[leftmargin = 1.5cm]
+        \item[\fbox{\texttt{#4}} \ \textbf{A.}] #1
+        \item[\fbox{\texttt{#5}} \ \textbf{B.}] #2
+        \item[\fbox{\texttt{#6}} \ \textbf{C.}] #3
+    \end{itemize}
+}
+
+% --- Lematy, Twierdzenia
+\newtheorem{lemma}{Lemat}
+\newtheorem{theorem}{Twierdzenie}

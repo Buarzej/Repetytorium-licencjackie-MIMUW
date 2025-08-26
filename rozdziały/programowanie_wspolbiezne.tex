@@ -1,0 +1,1120 @@
+\chapter{Programowanie współbieżne}
+
+Materiały teoretyczne z programowania współbieżnego zostały opracowane na podstawie \href{https://drive.google.com/file/d/1zfBfwprD5GQxga15WCi90tR3eM1Ihmwb/view?usp=sharing}{slajdów Marcina Engela} oraz \href{https://drive.google.com/file/d/1uXtmLBMIz4NsdsGUeBw0uWAQerDOgUyB/view?usp=sharing}{tego dokumentu}.
+
+\section*{Podstawa programowa}
+\begin{enumerate}
+    \item \textbf{Poprawność} programów współbieżnych.
+    \item \textbf{Mechanizmy synchronizacji} programów współbieżnych w systemach scentralizowanych i rozproszonych.
+    \item \textbf{Klasyczne problemy współbieżności}: problem wzajemnego wykluczania, producenta-konsumenta, czytelników i pisarzy, pięciu filozofów.
+    \item \textbf{Algorytmy rozproszone}: wzajemne wykluczanie, synchronizacja zegarów logicznych, uzgadnianie.
+    \item Wsparcie dla współbieżności w językach programowania \textbf{Java, C++} oraz w systemie operacyjnym \textbf{Unix}.
+\end{enumerate}
+
+\section{Podstawy programowania współbieżnego}
+
+\textbf{Program współbieżny} składa się ze skończonej liczby procesów sekwencyjnych. Każdy proces sekwencyjny wykonuje ciąg \textbf{operacji atomowych} (niepodzielnych, wykonujących się w całości albo wcale).
+
+Jako \textbf{równoległość} będziemy rozumieć faktyczne jednoczesne wykonywanie wielu czynności, natomiast \textbf{współbieżność} to tylko abstrakcja (złudzenie) równoległości.
+
+Programy współbieżne wykonują się w \textbf{przeplocie}: polega on na cyklicznym przełączaniu wykonania między różnymi wątkami lub procesami w celu wykonywania ich operacji atomowych. Jednocześnie tylko jeden wątek/proces może być aktywny, pozostałe wtedy oczekują na przydzielenie czasu wykonania (są \textit{zawieszone}). Przeplot jest więc mechanizmem, który umożliwia wykonanie fragmentów kodu różnych wątków/procesów w szybki i nieregularny sposób, uzyskując wspomniane złudzenie równoległości.
+
+\begin{exam}
+    Zmienna $x$ jest zmienną globalną o wartości początkowej 0. W systemie wykonują się współbieżnie dwa procesy o następującej treści:
+    \begin{java}
+        process P() {
+            for (int i = 1; i <= 5; i++)
+                x = x + 1;
+        }
+    \end{java}
+    Po zakończeniu wykonania obu procesów wartość zmiennej $x$ jest
+    \answers{nie mniejsza niż 5}{równa 10}{mniejsza niż 10}
+    \bigskip
+
+    Wbrew pozorom, linia kodu \cppinline{x = x + 1;} jest złożona z trzech operacji atomowych:
+    \begin{enumerate}
+        \item odczytanie wartości zmiennej $x$
+        \item obliczenie wartości $x + 1$
+        \item przypisanie $x \mapsto x + 1$
+    \end{enumerate}
+    Pokażemy kontrprzykład do każdego z podpunktów:
+    \begin{enumerate}[\bf A.]
+        \item Oznaczmy poszczególne procesy przez $P_1$ i $P_2$ oraz rozważmy następujący przeplot:
+        \begin{itemize}
+            \item $P_1$ odczytuje $x = 0$ i zawiesza się.
+            \item $P_2$ robi 4 obroty pętli. Wtedy $x = 4$ i zanim $P_2$ rozpocznie piąty obrót pętli, zawiesza się.
+            \item $P_1$ zapisuje $x = 1$ i zawiesza się.
+            \item $P_2$ odczytuje wartość $x = 1$ i zawiesza się.
+            \item $P_1$ wykonuje wszystkie pozostałe obroty pętli i zapisując $x = 5$, kończy przebieg.
+            \item $P_2$ kończy ostatni obrót pętli, zapisując $x = 2$.
+        \end{itemize}
+        Można zauważyć, że $x = 2$ jest najmniejszą możliwą wartością do uzyskania w tym zadaniu.
+
+        \item Kontrprzykład jak do podpunktu \textbf{A.}
+        
+        \item Wartość $x = 10$ możemy uzyskać, wykonując procesy w całości jeden po drugim.
+    \end{enumerate}
+    Stąd wszystkie odpowiedzi są fałszywe.
+\end{exam}
+
+\subsection{Własności programów współbieżnych}
+
+Programy współbieżne są narażone na zupełnie nowe rodzaje problemów, które nie występują w programowaniu sekwencyjnym. Wyróżniamy dwie własności programów, które powinny być zapewnione, aby program współbieżny działał prawidłowo.
+
+Pierwszą z nich jest \textbf{bezpieczeństwo}. Jest to zapewnienie, że nigdy nie dojdzie do sytuacji niepożądanej, którą definiuje specyfikacja problemu synchronizacyjnego. Bezpieczeństwo jest odpowiednikiem częściowej poprawności programu sekwencyjnego.
+
+Drugą własnością jest \textbf{żywotność}. Zapewnia ona, że każdy proces, który chce wykonać pewną akcję, w skończonym czasie będzie mógł to zrobić. Żywotność jest bezpośrednio związana z wykonaniem programu współbieżnego i jest odpowiednikiem całkowitej poprawności programu sekwencyjnego (razem z własnością bezpieczeństwa).
+
+\begin{example}
+    Załóżmy, że w systemie wykonują się procesy, które mają dostęp do wspólnego pliku. Jednocześnie z pliku może korzystać tylko jeden proces. W tak postawionym problemie synchronizacyjnym:
+    \begin{itemize}
+        \item własność \textbf{bezpieczeństwa} oznacza zapewnienie, że w danej chwili z pliku współdzielonego będzie korzystał maksymalnie jeden proces,
+        \item własność \textbf{żywotności} oznacza zapewnienie, że każdy proces, który chce uzyskać dostęp do pliku współdzielonego, będzie mógł to zrobić w skończonym czasie.
+    \end{itemize}
+\end{example}
+
+\subsection{Dostęp do wspólnych zasobów}
+
+W programowaniu współbieżnym projektujemy rozwiązania dostępu kilku wątków/procesów do wspólnych zasobów (np. pamięci współdzielonej, plików czy urządzeń).
+
+\textbf{Sekcja lokalna} to część kodu wątku/procesu, która nie korzysta z żadnych współdzielonych zasobów. W sekcji lokalnej wątek/proces może wykonywać operacje na swoich prywatnych zmiennych i lokalnych danych. Sekcja lokalna jest \purple{bezpieczna do równoczesnego wykonywania} przez wiele wątków/procesów.
+
+\textbf{Sekcja krytyczna} to część kodu, w której wątek/proces  korzysta z współdzielonych zasobów. Dostęp do sekcji krytycznej musi być odpowiednio synchronizowany, aby zapobiec sytuacjom, które mogą prowadzić do nieprzewidywalnych wyników i błędów w programie. \purple{Tylko jeden wątek lub proces może znajdować się w~sekcji krytycznej} w~danym czasie.
+\bigskip
+
+Niepoprawna synchronizacja dostępu do wspólnych zasobów może powodować problemy.
+
+\textbf{Zakleszczenie} (ang. \textit{deadlock}, globalny brak żywotności) to sytuacja, w której co najmniej dwie różne akcje czekają na siebie nawzajem, więc żadna nie może się zakończyć. Występuje, gdy wiele zadań w tym samym czasie konkuruje o wyłączny dostęp do zasobów.
+
+\begin{example}
+    Załóżmy, że w systemie wykonują się dwa wątki $A, B$, które mają dostęp do dwóch zasobów $a, b$. Dany zasób może być jednocześnie używany przez jeden wątek.
+
+    Oto kod wątku $A$:
+    \begin{java}
+        acquire(a); // Wykonywanie operacji na zasobie a
+        acquire(b); // Wykonywanie operacji na zasobie b
+        release(a);
+        release(b);
+    \end{java}
+    oraz kod wątku $B$:
+    \begin{java}
+        acquire(b); // Wykonywanie operacji na zasobie b
+        acquire(a); // Wykonywanie operacji na zasobie a
+        release(a);
+        release(b);
+    \end{java}
+
+    Jeśli przeplot zostanie ustalony tak, że wątek $A$ zablokuje zasób $a$, a wątek $B$ -- zasób $b$, to oba wątki utkną w~zakleszczeniu: żaden z nich nie będzie mógł wykonać kolejnej operacji, jaką jest uzyskanie dostępu do zasobu, który aktualnie blokuje inny wątek.
+\end{example}
+
+\textbf{Zagłodzenie} (ang. \textit{starvation}, lokalny brak żywotności) to sytuacja, w której proces czeka w nieskończoność, gdyż zdarzenie, na które czeka, zawsze powoduje wznowienie innego procesu.
+
+\begin{example}
+    Załóżmy, że mamy program, który korzysta z wątków do wykonania pewnego zadania. Wątki starają się uzyskać dostęp do wspólnej drukarki, aby wydrukować pewien dokument.
+
+    Oto kod każdego z wątków:
+    \begin{java}
+        while (true) {
+            acquire(printer);
+            if isMyTurn() {
+                printer.print();
+                release(printer);
+                break;
+            } else {
+                release(printer);
+                continue;
+            }
+        }
+    \end{java}
+
+    W tym kodzie wątek wykonuje pętlę w nieskończoność, próbując uzyskać blokadę na drukarce. Jeśli jest jego kolej, wątek drukuje dokument, zwalnia blokadę i kończy działanie. W przeciwnym razie wątek zwalnia blokadę i ponownie próbuje uzyskać dostęp.
+
+    Zakładając, że istnieje więcej niż jeden wątek wykonujący ten kod, zagłodzenie może wystąpić, jeśli pewien wątek ciągle nie ma możliwości uzyskania dostępu do drukarki, bo jest blokowany przez pozostałe wątki. Na przykład, jeśli inne wątki stale zgłaszają swoje żądania przed nim lub są one traktowane bardziej priorytetowo, wątek może pozostać zablokowany w pętli \javainline{while}, nie mając szansy na wydrukowanie dokumentu. W efekcie wątek ten doświadcza zagłodzenia, ponieważ nie jest w stanie wykonać swojego zadania pomimo ciągłych prób.
+\end{example}
+
+Zagłodzenie może wystąpić, gdy mechanizmy zarządzania kolejnością dostępu do współdzielonych zasobów nie są odpowiednio zaimplementowane lub uwzględnione. W programowaniu współbieżnym zakładamy, że system operacyjny -- pełniący funkcję zarządcy dostępu do czasu wykonania -- jest \textbf{uczciwy}, czyli zapewnia, że każdy proces gotowy do wykonania stanie się w końcu aktywny.
+
+\subsection{Aktywne oczekiwanie}
+
+Oczekiwanie na wspólne zasoby może zostać zrealizowane w postaci
+\begin{java}
+    while (blokadaAktywna()) {
+        // Nic nie rób
+    }
+\end{java}
+W ten sposób wątek/proces wejdzie do sekcji krytycznej dopiero wtedy, gdy zasoby, z których chce skorzystać, będą dla niego dostępne (tj. nie będą zajmowane przez inne wątki/procesy). Taki sposób realizacji, w którym wątek/proces na bieżąco sprawdza, czy dany warunek jest spełniony, nazywamy \textbf{wirującą blokadą} (ang. \textbf{\textit{spinlock}}). Działa ona na zasadzie \textbf{aktywnego oczekiwania} -- zużywa czas procesora, wykonując cały czas pustą pętlę.
+
+Spinlock:
+\begin{itemize}
+    \item ma możliwość zagłodzenia,
+    \item jest stosowany w praktyce do blokowania na krótki czas, zwłaszcza na poziomie jądra systemu,
+    \item pozwala na uniknięcie kosztownego czasowo wstrzymania procesu przez system i przełączenia kontekstu na kod systemowy,
+    \item w systemach z pamięcią podręczną wykorzystuje aktywne lokalne oczekiwanie, tj. sprawdza wartość zapisaną w pamięci podręcznej (ma to związek z szybkością dostępu do pamięci podręcznej w porównaniu do pamięci głównej).
+\end{itemize}
+
+Zazwyczaj jednak ten rodzaj synchronizacji jest szczególnie nieefektywny. Dużo lepszą metodą jest wykorzystanie jednego z dostępnych mechanizmów synchronizacji działających na zasadzie usypiania wątku, które zostaną opisane w kolejnych rozdziałach.
+
+\begin{problems}
+    \prob Rozważmy następujący program wykonywany przez trzy procesy:
+    \begin{cpp}
+        int x = 0;
+
+        process P(int id) { // id = 0, 1, 2
+            int y;
+            for (i = 0; i < 5; i++) {
+                y = x;
+                y = y + 1;
+                x = y;
+            }
+        }
+    \end{cpp}
+
+    Istnieje taki przeplot, że wartość zmiennej $x$ po zakończeniu wszystkich trzech procesów jest równa
+    \answers{15}{3}{2}
+
+    \prob Własność żywotności rozwiązania problemu wzajemnego wykluczania oznacza, że
+    \answers{każdy proces kiedyś wejdzie do sekcji krytycznej}{w sekcji krytycznej zawsze znajdzie się co najwyżej jeden proces}{każdy proces wchodzi do sekcji krytycznej bez czekania}
+    % {TAK}{NIE}{NIE}
+
+    \prob Dany jest następujący program wzajemnego wykluczania dla dwóch procesów:
+    \begin{cpp}
+        int jest[2] = (0, 0);
+        
+        process P(int id) { /* id = 0 lub id = 1 */
+            while (true) {
+                /* sekcja lokalna */
+                while (jest[1 - id]);        // (*)
+                jest[id] = 1;                // (*)
+                /* sekcja krytyczna */
+                jest[id] = 0;
+            }
+        }
+    \end{cpp}
+    Taki program
+    \answers{ma własność bezpieczeństwa}{ma własność żywotności}{będzie miał własność żywotności, kiedy zamienimy kolejność wierszy oznaczonych gwiazdką}
+    % {NIE}{NIE}{NIE}
+    
+    \prob Dany jest kod dla dwóch procesów:
+    \begin{java}
+        boolean czeka1, czeka2;
+        
+        process P1() {
+            czeka1 = false;
+            while (true) {
+                czeka1 = true;
+                while (czeka2) {}
+                // Sekcja krytyczna.
+                czeka1 = false;
+            }
+        }
+        
+        process P2() {
+            czeka2 = false;
+            while (true) {
+                czeka2 = true;
+                while (czeka1) {}
+                // Sekcja krytyczna.
+                czeka2 = false;
+            }
+        }
+    \end{java}
+    Taki program
+    \answers{wykorzystuje aktywne czekanie}{zapewnia żywotność}{zapewnia bezpieczeństwo}
+    % {TAK}{NIE}{TAK}
+
+    \prob Synchronizacja za pomocą blokad wirujących (ang. \textit{spinlock})
+    \answers{pozwala uniknąć przełączania kontekstu niezbędnego w przypadku konieczności wstrzymania procesu}{zapewnia żywotność}{w systemach z pamięcią podręczną wykorzystuje lokalne aktywne oczekiwanie (sprawdzana jest wartość zapisana w pamięci podręcznej)}
+    % {TAK?}{NIE?}{TAK?}
+\end{problems}
+
+\section{Semafory}
+
+\textbf{Semafory} to najbardziej podstawowe mechanizmy synchronizacji nie używające aktywnego oczekiwania. Rozróżniamy kilka rodzajów semaforów, które omówimy w tym rozdziale.
+
+\textbf{Semafor ogólny} to abstrakcyjny typ danych z operacjami: 
+\begin{itemize}
+    \item \textbf{inicjacji} (od razu przy deklaracji, poza procesami),
+    \item \textbf{opuszczenia} \texttt{P()} (próby przejścia przez semafor),
+    \item \textbf{podniesienia} \texttt{V()}.
+\end{itemize}
+
+Operacje \texttt{P()} i \texttt{V()} są atomowe oraz wykluczają się nawzajem. Nie są dopuszczalne żadne inne operacje na semaforze.
+
+Semafor ogólny interpretować możemy jako zmienną całkowitoliczbową przyjmującą wartości nieujemne. Gdy semafor ma wartość 0, to mówimy, że jest \textbf{zamknięty}, a jeśli większą od 0, to jest \textbf{otwarty}.
+
+Jeśli semafor jest otwarty, to operacja \texttt{P()} zmniejsza jego wartość o 1. Jeśli zaś jest zamknięty, to proces wykonujący operację \texttt{P()} jest wstrzymywany.
+
+Operacja \texttt{V()} powoduje zwiększenie wartości semafora o 1, jeśli żaden proces na tym semaforze nie czeka. W przeciwnym przypadku któryś z czekających procesów jest wznawiany. 
+
+\subsection{Rodzaje semaforów}
+
+\textbf{Semafor Dijkstry} to taki, w którym \purple{nie zakładamy nic o implementacji czekania ani o kolejności budzenia procesów}. Jego implementacja wygląda następująco:
+\begin{java}
+P(S):
+    czekaj aż S > 0
+    S := S - 1
+
+V(S):
+    S := S + 1
+\end{java}
+
+\textbf{Semafor słaby} działa następująco:
+\begin{java}
+P(S):
+    if S > 0:
+        S := S - 1
+    else:
+        wstrzymaj wykonujący proces na semaforze S
+
+V(S):
+    if jakiś proces czeka na S:
+        wznów dowolnie wybrany proces spośród oczekujących na S
+    else:
+        S := S + 1
+\end{java}
+
+\textbf{Semafor silny} (uczciwość słaba) działa następująco:
+\begin{java}
+P(S):
+    if S > 0:
+        S := S - 1
+    else:
+        wstrzymaj wykonujący proces w kolejce procesów związanych z semaforem S
+
+V(S):
+    if jakiś proces czeka na S:
+        wznów pierwszy proces z kolejki oczekujących na S
+    else:
+        S := S + 1
+\end{java}
+
+\textbf{Semafor silnie uczciwy} (uczciwość mocna) działa następująco:
+\begin{java}
+P(S):
+    if S > 0:
+        S := S - 1
+    else:
+        wstrzymaj wykonujący proces na semaforze S
+
+V(S):
+    if jakiś proces czeka na S:
+        wznów dowolny proces spośród oczekujących na S
+    else:
+        S := S + 1
+\end{java}
+Przy czym jeśli operacja \texttt{V()} będzie wykonana nieskończenie wiele razy, to w końcu każdy proces oczekujący na $S$ zostanie wznowiony (silna uczciwość). W dalszych rozważaniach przyjmujemy tę właśnie definicję.
+
+\textbf{Semafor binarny} (ang. \textbf{\textit{mutex}}) to semafor, który może przyjmować jedynie wartości 0 lub 1. Podniesienie takiego semafora, gdy już jest otwarty, powoduje błąd.
+
+\textbf{Semafor uogólniony} działa następująco:
+\begin{java}
+P(S, n):
+    czekaj, aż S >= n
+    S := S - n
+    
+V(S, n):
+    S := S + n
+\end{java}
+
+\textbf{Semafor dwustronnie ograniczony} przyjmuje wartości z przedziału $[0, M]$, gdzie $M$ jest wartością podawaną przy inicjalizacji semafora:
+\begin{java}
+P(S):
+    czekaj, aż S >= 0
+    S := S - 1
+
+V(S):
+    czekaj, aż S < M
+    S := S + 1
+\end{java}
+
+\subsection{Dziedziczenie sekcji krytycznej}
+
+Jedną z technik rozwiązywania problemów synchronizacyjnych jest \textbf{dziedziczenie sekcji krytycznej}. Proces, który faktycznie kogoś budzi, nie podnosi semafora, obudzony proces zastaje zamknięty semafor (dziedziczy sekcję krytyczną) i musi podnieść go w imieniu procesu, który go obudził. Dzięki temu między obudzeniem a~faktycznym wznowieniem działania przez proces nic nie może się zdarzyć.
+
+\begin{example}
+    Poniższy przykład pokazuje prawidłową implementację techniki dziedziczenia sekcji krytycznej. Proces kończący pracę sprawdza, czy może kogoś obudzić, i jeśli tak, to nie zwalnia muteksa -- ten obowiązek zostaje zrzucony na proces, który został wznowiony.
+    \begin{java}
+        binarySemaphore mutex = 1;
+        binarySemaphore delay = 0;
+        int ilu_czeka = 0;
+        
+        // Protokół wstępny
+        P(mutex);
+        if (trzeba poczekać) {
+            ilu_czeka++;
+            V(mutex);
+            P(delay); // Dziedziczenie sekcji krytycznej
+            ilu_czeka--;
+        }
+        ...
+        V(mutex);
+        
+        // Protokół końcowy
+        P(mutex);
+        ...
+        if (można kogoś wznowić && ilu_czeka > 0)
+            V(delay); // Nie zwalniamy muteksa
+        else
+            V(mutex);
+    \end{java}
+\end{example}
+
+
+\begin{problems}
+    \prob W sali wystawowej może jednocześnie przebywać co najwyżej $K$ osób. Wystawę zwiedzają grupy reprezentowane przez procesy \texttt{Grupa}. Parametrem procesu \texttt{Grupa} jest liczba osób w grupie, będąca liczbą dodatnią mniejszą bądź równą $K$. Jeśli grupa w całości nie mieści się w sali, musi poczekać. Rozważmy następujące rozwiązanie tego zadania korzystające z semafora silnego $S$ o wartości początkowej $K$.
+    \begin{java}
+        process Grupa (int liczność) {
+            while (true) {
+                for (int i = 0; i < liczność; ++i) P(S); // Grupa czeka na miejsce.
+                // Grupa zwiedza wystawę.
+                for (int i = 0; i < liczność; ++i) V(S); // Grupa opuszcza wystawę.
+                // Grupa odpoczywa.
+            }
+        }
+    \end{java}
+    Prawdą jest, że
+    \answers{rozwiązanie ma własność bezpieczeństwa}{rozwiązanie ma własność żywotności}{istnieje taka liczba grup i takie wykonanie programu, w którym pewna grupa zwiedza wystawę nieskończenie wiele razy}
+    % {TAK}{NIE}{TAK}
+
+    \prob Niech $S$ będzie semaforem binarnym. Oto rozwiązanie problemu wzajemnego wykluczania dla dowolnej liczby procesów:
+    \begin{java}
+        // Sekcja lokalna.
+        P(S);
+        // Sekcja krytyczna.
+        V(S);
+    \end{java}
+    Jeśli $S$
+    \answers{ma wartość początkową $0$, to powyższe rozwiązanie ma własność bezpieczeństwa}{ma wartość początkową $0$, to żaden z procesów nie zostanie zagłodzony}{ma wartość początkową $1$, to powyższe rozwiązanie ma własność bezpieczeństwa}
+    
+    \prob Rozważmy rozwiązanie problemu wzajemnego wykluczania $N \geq 3$ procesów przy użyciu semafora $S$~o~wartości początkowej równej 1.
+    \begin{cpp}
+        process P(int id) {
+            while (true) {
+                /* sekcja lokalna */
+                P(S);
+                /* sekcja krytyczna */
+                V(S);
+            }
+        }
+    \end{cpp}
+    Prawdą jest, że
+    \answers{jeśli semafor $S$ jest semaforem słabym, to rozwiązanie jest żywotne}{jeśli semafor $S$ jest semaforem Dijkstry i $N \leq 2$, to rozwiązanie jest żywotne}{rodzaj semafora $S$ nie ma wpływu na bezpieczeństwo rozwiązania}
+    % {NIE?}{TAK?}{TAK?}
+\end{problems}
+
+\section{Monitory}
+
+Innym mechanizmem synchronizacji od semaforów są \textbf{monitory}, czyli moduły programistyczne udostępniające na zewnątrz pewne procedury i funkcje, a ukrywające wszystkie zmienne, stałe i typy.
+
+\purple{Monitor działa jak sekcja krytyczna}, tj. w danej chwili tylko jeden proces wykonuje funkcje monitora (,,jest w monitorze''). Jeśli pewien proces wywoła funkcję monitora w czasie, gdy inny proces jest już w monitorze, to zostanie automatycznie wstrzymany. Co ważne, wzajemne wykluczanie odbywa się na poziomie całego monitora, a nie poszczególnych jego funkcji.
+
+Monitor gwarantuje ochronę zmiennych globalnych, które są w nim umieszczone (bo dostęp do nich mają tylko funkcje monitora, a może z nich korzystać jeden proces naraz).
+
+Monitory oferują dodatkowy abstrakcyjny typ danych -- \textbf{zmienne warunkowe} (oznaczane typem \texttt{condition}). Z każdą zmienną warunkową związany jest zbiór procesów oczekujących na niej. Można je traktować jako osobne kolejki procesów czekających na dostęp do monitora, istniejące oprócz tej ,,ogólnej'' (dla procesów, które do monitora chcą wejść po raz pierwszy z zewnątrz). Dostępne są trzy operacje na zmiennych warunkowych:
+\begin{itemize}
+    \item \texttt{wait(c)} -- bezwarunkowe wstrzymanie procesu wykonującego tę operację. Proces opuszcza monitor i oczekuje na zmiennej \texttt{c}.
+    \item \texttt{signal(c)} -- obudzenie jednego procesu oczekującego na zmiennej \texttt{c}. Wznowiony proces kontynuuje wykonanie od kolejnej instrukcji po \texttt{wait(c)}.
+    \item \texttt{empty(c)} -- zwraca \textbf{true}, gdy żaden proces nie czeka na zmiennej.
+\end{itemize}
+
+\subsection{Semantyka \texttt{wait()}}
+
+Rozróżniamy dwie różne semantyki operacji \texttt{wait()}.
+
+Pierwszą z nich jest \textbf{semantyka Hoare'a}: ze zmiennymi warunkowymi związane są \purple{kolejki proste (FIFO)}. Procesy oczekujące na wejście do monitora także czekają na kolejce prostej.
+
+Drugą jest \textbf{semantyka języka Mesa}, w której \purple{nie zakłada się budzenia procesów w kolejności ich zawieszania} -- wznawiany proces jest wybierany przez moduł szeregujący zgodnie z zaimplementowaną strategią, można jednak założyć \purple{silną uczciwość}.
+
+\subsection{Semantyka \texttt{signal()}}
+
+W związku z tym, że w monitorze może być co najwyżej jeden proces naraz, pojawia się problem, gdy \texttt{signal(c)} nie jest ostatnią operacją wykonywaną przez proces w monitorze i na zmiennej warunkowej \texttt{c} ktoś czeka -- nie można po prostu obudzić procesu, bo wtedy w monitorze znalazłyby się dwa procesy. Rozważymy dwa najpopularniejsze sposoby rozwiązania tego problemu, związane z poprzednimi dwoma semantykami.
+
+\textbf{Semantyka Hoare'a}: proces sygnalizujący wychodzi z monitora i \purple{ustawia się na początku kolejki} procesów oczekujących na wejście do monitora, a \purple{jego miejsce w monitorze zajmuje obudzony proces}. Procesy budzone mają priorytet przed oczekującymi na wejście do monitora (jest to \textit{warunek natychmiastowego wznowienia}). Dodatkowo:
+\begin{itemize}
+    \item jeśli \texttt{signal(c)} był ostatnią instrukcją wykonaną w monitorze przez proces lub nikt na zmiennej warunkowej \texttt{c} nie czekał, to proces sygnalizujący \purple{wychodzi z monitora bez czekania};
+    \item gdy obudzony proces wyjdzie z monitora, nie budząc nikogo, to tuż po nim \purple{do monitora wejdzie proces, który go obudził} -- procesy wstrzymane na skutek wykonania \texttt{signal()} mają pierwszeństwo przed procesami oczekującymi na wejście do monitora.
+\end{itemize}
+
+\textbf{Semantyka języka Mesa}: proces sygnalizujący \purple{wykonuje się dalej} i dopiero po jego wyjściu z monitora wznawiany jest dowolny proces: albo oczekujący na wejście, albo obudzony z \texttt{wait()}. Niestety, proces wznawiający działanie po \texttt{wait()} nie ma gwarancji, że warunek, na który czekał, jest nadal spełniony.
+
+\subsection{Semantyka klasycznych monitorów}
+
+O ile nie jest wprost powiedziane, że jest inaczej, klasyczne monitory przyjmują \textbf{semantykę Hoare'a}:
+\begin{itemize}
+    \item Procesy oczekują na wejście do monitora w kolejce prostej.
+    \item Z każdą zmienną warunkową jest związana osobna kolejka prosta.
+    \item \texttt{signal()} na pustej kolejce nie robi nic.
+    \item \texttt{signal()}, który faktycznie budzi jakiś proces, powoduje wstrzymanie procesu sygnalizującego i umieszczenie go na \purple{początku} kolejki procesów oczekujących na wejście do monitora; w jego miejsce do monitora wraca obudzony proces, który wznawia wykonanie od kolejnej instrukcji po \texttt{wait()}.
+    \item \texttt{signal()} wykonywany jako ostatnia instrukcja w monitorze nie wstrzymuje procesu.
+\end{itemize}
+
+\begin{problems}
+    \prob Zgodnie z semantyką klasycznych monitorów (Hoare'a), proces może zostać wstrzymany
+    \answers{przed rozpoczęciem wykonania funkcji eksportowanej przez monitor}{wskutek wykonania operacji \texttt{wait()} na zmiennej warunkowej wewnątrz monitora}{wskutek wykonania operacji \texttt{signal()} na zmiennej warunkowej wewnątrz monitora}
+    % {TAK}{TAK}{TAK}
+    
+    \prob Operacja \texttt{signal()} wykonana przez proces $Q$ na zmiennej warunkowej $c$, na której czeka dokładnie jeden proces $P$
+    \answers{w semantyce Hoare'a powoduje wyjście procesu $Q$ z monitora i wstawienie go do kolejki związanej ze zmienną warunkową $c$}{zarówno w semantyce Hoare'a, jak i w semantyce Mesy gwarantuje, że proces $P$ zostanie kiedyś obudzony z warunku $c$}{w semantyce Mesy powoduje wyjście aktualnie wykonującego się procesu z monitora i ustawienie go na początku kolejki na wejściu do monitora}
+    % {???}{???}{???}
+
+    \prob Semafor silny
+    \answers{gwarantuje silną uczciwość przy budzeniu uśpionych na nim procesów}{jest szczególnym przypadkiem semafora słabego (tzn. każdy semafor silny jest semaforem słabym)}{może być zaimplementowany za pomocą monitorów z semantyką Hoare'a}
+    % {NIE?}{TAK?}{TAK?}
+\end{problems}
+
+\section{Komunikacja synchroniczna i asynchroniczna}
+
+Do tej pory zajmowaliśmy się scentralizowanym modelem współbieżności, czyli takim, w którym procesy wykonują się w środowisku ze wspólną pamięcią ze współdzielonymi globalnymi zmiennymi. Istnieje także \textbf{model rozproszony}, gdzie taka wspólna pamięć nie istnieje. Synchronizacja odbywa się wtedy przez wymianę komunikatów. Rozróżniamy różne typy jej realizacji:
+\begin{enumerate} [I.]
+    \item \begin{itemize}
+        \item \textbf{Synchroniczna} -- mamy z nią do czynienia wtedy, gdy chcące się ze sobą skomunikować procesy są wstrzymywane do chwili, gdy komunikacja będzie się mogła odbyć. Przykładem komunikacji synchronicznej jest rozmowa telefoniczna. Nadawca przekazuje swój komunikat dopiero wówczas, gdy odbiorca chce go wysłuchać.
+        \item \textbf{Asynchroniczna} -- nie wymaga współistnienia komunikujących się procesów w tym samym czasie. Polega na tym, że nadawca wysyła komunikat, nie czekając na nic. Komunikaty są buforowane w jakimś miejscu (odpowiada za to system operacyjny lub mechanizmy obsługi sieci) i stamtąd pobierane przez odbiorcę. Przykładem komunikacji asynchronicznej jest poczta.
+    \end{itemize}
+    \item \begin{itemize}
+        \item \textbf{Symetryczna} -- procesy znają nawzajem swoje identyfikatory.
+        \item \textbf{Asymetryczna} -- tylko jeden proces zna identyfikator drugiego.
+    \end{itemize}
+    \item \begin{itemize}
+        \item \textbf{Bezpośrednia} -- bezpośrednie odwołanie się jednego wątku lub procesu do innego, wymaga znajomości identyfikatorów docelowych. Wykorzystuje operacje synchronizacyjne.
+        \item \textbf{Pośrednia} -- wymiana informacji za pośrednictwem współdzielonych struktur danych lub mechanizmów komunikacyjnych, takich jak kolejki, bufory, kanały. Nie wymaga bezpośredniej znajomości identyfikatorów docelowych. 
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Realizacja komunikacji synchronicznej w  Rendezvous}
+W systemie \textbf{Rendezvous} procesy porozumiewają się ze sobą za pomocą komunikatów, które mogą mieć nazwy (ale nie muszą) i mają zero lub więcej argumentów, np.
+\begin{itemize}
+    \item \texttt{Chcę(5)}
+    \item \texttt{Możesz()}
+    \item \texttt{(x + y, 5)}
+    \item \texttt{12}
+\end{itemize}
+
+Wysyłając komunikat, wskazujemy proces, do którego komunikat jest skierowany. Nadawca jest wstrzymywany do chwili, gdy odbiorca będzie gotowy do odbioru wiadomości. Dla przykładu, ,,\texttt{send Bufor.5}'' wysyła komunikat ,,\texttt{5}'' do procesu o nazwie ,,Bufor''.
+
+Odbierając komunikat, można (ale nie trzeba) wskazać nadawcę. Odbiorca jest wstrzymywany do chwili, gdy nadawca będzie gotowy do wysłania wiadomości. Parametrami komunikatu są lokacje (zmienne), w których zostaną umieszczone ewentualne argumenty odebranego komunikatu. Przykłady:
+\begin{itemize}
+    \item \texttt{receive Możesz()} -- odbiera bezargumentowy komunikat ,,\texttt{Możesz()}'' (od dowolnego nadawcy)
+    \item \texttt{receive x} -- odbiera komunikat będący pojedynczą daną (np. liczbą, jeśli zmienna $x$ jest typu liczbowego) i zapisuje tę daną w zmiennej $x$
+    \item \texttt{receive Q.Dodaj(x, y)} -- odbiera dwuargumentowy komunikat ,,\texttt{Dodaj()}'' od procesu o nazwie ,,Q'' i zapisuje oba argumenty w zmiennych $x, y$
+\end{itemize}
+
+Instrukcje wysyłania i odbierania komunikatu są do siebie dopasowywane na podstawie adresu nadawcy i odbiorcy, nazwy komunikatu oraz liczby i typów argumentów. Po zakończeniu komunikacji oba procesy kontynuują swoje działanie. Zakładamy uczciwość komunikacji.
+
+\subsection{Realizacja komunikacji asynchronicznej w przestrzeni krotek}
+\textbf{Przestrzeń krotek} to coś w rodzaju nieskończonego bufora, za pomocą którego porozumiewają się ze sobą procesy. Jest jedna wielka, globalna przestrzeń krotek. 
+
+Procesy porozumiewają się ze sobą, umieszczając w przestrzeni krotek komunikaty i pobierając je z niej. Procesy nie muszą wiedzieć nic o sobie nawzajem; co więcej, mogą nie istnieć w tym samym czasie. Nadawca może odebrać komunikat od procesu, który już dawno zakończył swoje działanie. 
+
+Implementacja przestrzeni krotek jest realizowana np. za pomocą \textbf{notacji Linda}, której najważniejsze operacje to:
+\begin{itemize}
+    \item \cppinline{void tsPut(char const* format, args...)} umieszcza w przestrzeni krotkę opisaną formatem z uwzględnieniem ewentualnych argumentów, analogicznie jak przy C++-owym \cppinline{printf()}. Operacja jest nieblokująca -- proces umieszcza krotkę w przestrzeni i wykonuje się dalej.
+
+    Przykład użycia: \cppinline{tsPut("KROTKA %d %f %c", 5, 3.14, 'c');}
+
+    Operacja \cppinline{tsPut()} może umieścić w przestrzeni krotkę o nieokreślonej wartości pewnych składowych z użyciem pytajnika, np. \cppinline{tsPut("%d ?c", 2);}. Taka krotka ma jednoznacznie określoną postać i dziury na pewnych składowych. W operacjach selektywnego wyboru dziury pasują do każdej wartości, ale w przypadku zapisania dziury na zmienną ma ona nieokreśloną wartość.
+
+    \item \cppinline{void tsFetch(char const* format, ...} usuwa z przestrzeni krotkę opisaną formatem, a wartości jej składowych przypisuje kolejnym argumentom (jak w funkcji \cppinline{scanf()}). Jeśli krotki o podanym formacie nie ma w przestrzeni krotek, to operacja \cppinline{tsFetch()} wstrzymuje proces. Format konstruujemy jak w operacji wyjścia, ale zamiast znaku \texttt{\%} używamy pytajnika.
+
+    Przykład użycia:
+    \begin{cpp}
+        int x; double y; char z;
+        tsFetch("?d ?f ?c", &x, &y, &z);
+    \end{cpp}
+
+    Nie jest określona kolejność budzenia procesów, ale zakłada się silną uczciwość, to samo z wyjmowaniem pasujących krotek.
+
+    Elementem formatu w operacji \cppinline{tsFetch()} może być też pole rozpoczynające się od znaku \texttt{\%}. W takiej sytuacji wyjmowana z przestrzeni krotka musi mieć w danym miejscu wskazaną wartość:
+    
+    \cppinline{tsFetch("%d ?f", 25, &y);}
+
+    \item \cppinline{void tsRead(char const* format, ...)} działa jak \cppinline{tsFetch()}, ale pozostawia odczytaną krotkę w przestrzeni krotek.
+\end{itemize}
+
+Przykład wykorzystania notacji Linda poznamy w następnym rozdziale (przy problemie producentów i konsumentów).
+
+\begin{problems}
+    \prob Proces może wysłać wiadomość do samego siebie w trybie
+    \answers{bezpośredniej komunikacji asynchronicznej}{bezpośredniej komunikacji synchronicznej}{komunikacji z użyciem przestrzeni krotek}
+    % {TAK}{NIE}{TAK}
+\end{problems}
+
+\section{Klasyczne problemy współbieżności}
+
+W tym rozdziale omówimy kilka klasycznych problemów synchronizacyjnych, których schematy rozwiązania mają często zastosowanie przy bardziej skomplikowanych algorytmach.
+
+\subsection{Problem wzajemnego wykluczania}
+
+Pierwszym klasycznym problemem synchronizacyjnym, najczęściej pojawiającym się w praktyce, jest \textbf{problem wzajemnego wykluczania}. Przypuśćmy, że mamy procesy, z których każdy wykonuje następujący program:
+\begin{java}
+    process P() {
+        while (true) {
+            wlasneSprawy();
+            protokolWstepny();
+            sekcjaKrytyczna();
+            protokolKoncowy();
+        }
+    }
+\end{java}
+
+Procedura \javainline{wlasneSprawy()} to fragment kodu, który nie wymaga żadnych działań synchronizacyjnych. Proces może wykonywać własne sprawy \purple{dowolnie długo} (nawet nieskończenie długo), może też ulec tam awarii.
+
+\javainline{sekcjaKrytyczna()} to fragment programu, który może być jednocześnie wykonywany przez co najwyżej jeden proces. Zakładamy, że \purple{każdy proces wchodzący do sekcji krytycznej w skończonym czasie z niej wyjdzie}. Oznacza to w szczególności, że podczas pobytu w sekcji krytycznej nie wystąpi błąd ani proces się nie zapętli.
+
+Zadanie polega na napisaniu protokołu wstępnego i protokołu końcowego, tak aby:
+\begin{itemize}
+    \item W sekcji krytycznej przebywał co najwyżej jeden proces jednocześnie (\textbf{bezpieczeństwo}).
+    \item Każdy proces, który chce wykonać sekcję krytyczną, w skończonym czasie do niej wszedł (\textbf{żywotność}).
+\end{itemize}
+
+Protokoły wstępny i końcowy konstruuje się, korzystając z dostępnych mechanizmów synchronizacyjnych, np. \textbf{algorytm Petersona}. Poniżej przedstawiono rozwiązanie problemu wzajemnego wykluczania z zastosowaniem właśnie tego algorytmu:
+\begin{java}
+    boolean chce[2] = {false, false};
+    int ktoCzeka = 0;
+
+    process P0() {
+        while (true) {
+            // Własne sprawy
+            chce[0] = true;
+            ktoCzeka = 0;
+            while (ktoCzeka = 0 && chce[1]) { }
+            // Sekcja krytyczna
+            chce[0] = false;
+        }
+    }
+
+    process P1() {
+        while (true) {
+            // Własne sprawy
+            chce[1] = true;
+            ktoCzeka = 1;
+            while (ktoCzeka = 1 && chce[0]) { }
+            // Sekcja krytyczna
+            chce[1] = false;
+        }
+    }
+\end{java}
+
+\subsection{Producenci i konsumenci}
+
+W systemie działa $P > 0$ procesów, które produkują pewne dane oraz $K > 0$ procesów, które odbierają dane od producentów. Między producentami a konsumentami może znajdować się bufor o pojemności $B$, którego zadaniem jest równoważenie chwilowych różnic w czasie działania procesów. Procesy produkujące dane będziemy nazywać \textbf{producentami}, a procesy odbierające dane -- \textbf{konsumentami}. Zadanie polega na synchronizacji pracy producentów i konsumentów, tak aby:
+\begin{itemize}
+    \item Konsument oczekiwał na pobranie danych w sytuacji, gdy bufor jest pusty (\textbf{bezpieczeństwo}).
+    \item Producent, umieszczając dane w buforze, nie nadpisywał danych już zapisanych, a jeszcze nie odebranych przez żadnego konsumenta. Wymaga to wstrzymania producenta w sytuacji, gdy w buforze nie ma już wolnych miejsc.
+    \item Jeśli wielu konsumentów oczekuje, aż w buforze pojawią się jakies dane oraz ciągle są produkowane nowe dane, to każdy oczekujący konsument w końcu coś z bufora pobierze. Nie zdarzy się tak, że pewien konsument czeka w nieskończoność na pobranie danych, jeśli tylko ciągle napływają one do bufora (\textbf{żywotność}).
+    \item Jeśli wielu producentów oczekuje, aż w buforze będzie wolne miejsce, a konsumenci ciągle coś z bufora pobierają, to każdy oczekujący producent będzie mógł coś do bufora włożyć. Nie zdarzy się tak, że pewien producent czeka w nieskończoność, jeśli tylko ciągle z bufora coś jest pobierane (\textbf{żywotność}).
+\end{itemize}
+
+Problem producentów i konsumentów jest abstrakcją wielu sytuacji występujących w systemach komputerowych, na przykład zapis danych do bufora klawiatury przez sterownik klawiatury i ich odczyt przez system operacyjny.
+
+Przykładowe rozwiązanie problemu z użyciem przestrzeni krotek i notacji Linda. Początkowo w przestrzeni: \texttt{lprod 1}, \texttt{lkons 1} oraz $M$ krotek \texttt{miejsce}.
+\begin{java}
+    // i = 1, ..., P
+    process Producent(int i) {
+        int p, ile;
+        while (true) {
+            produkuj(&p);
+            tsFetch("miejsce");
+            tsFetch("lprod ?d", &ile);
+            tsPut("%d %d", ile, p);
+            tsPut("lprod %d", ile + 1);
+        }
+    }
+
+    // j = 1, ..., K
+    process Konsument(int j) {
+        int p, ile;
+        while (true) {
+            tsFetch("lkons ?d", &ile);
+            tsFetch("%d ?d", ile, &p);
+            tsPut("miejsce");
+            tsPut("lkons ?d", ile + 1);
+            konsumuj(p);
+        }
+    }
+\end{java}
+
+\subsection{Czytelnicy i pisarze}
+
+W systemie działa $C > 0$ procesów, które odczytują pewne dane oraz $P > 0$ procesów, które zapisują te dane. Procesy zapisujące będziemy nazywać \textbf{pisarzami}, a odczytujące -- \textbf{czytelnikami}. Moment, w którym procesy mają dostęp do danych, będziemy nazywać \textit{pobytem w czytelni}.
+
+Zauważmy, że jednocześnie wiele procesów może odczytywać dane. Jeśli jednak ktoś chce te dane zmodyfikować, to rozsądnie jest zablokować dostęp do tych danych dla wszystkich innych procesów na czas zapisu. Zapobiegnie to odczytaniu niespójnych informacji (na przykład danych tylko częściowo zmodyfikowanych).
+
+Należy tak napisać protokoły wstępne i końcowe poszczególnych procesów, aby:
+\begin{itemize}
+    \item Wielu czytelników miało jednocześnie dostęp do czytelni.
+    \item Jeśli w czytelni przebywa pisarz, to nikt inny w tym czasie nie pisze ani nie czyta (\textbf{bezpieczeństwo}).
+    \item Każdy czytelnik, który chce odczytać dane, w końcu je odczyta (\textbf{żywotność}).
+    \item Każdy pisarz, który chce zmodyfikować dane, w końcu je zapisze (\textbf{żywotność}).
+\end{itemize}
+
+Poniżej przedstawiono przykładowe rozwiązanie problemu (z wykorzystaniem monitorów):
+\begin{java}
+    // i = 0, ..., C
+    process Czytelnik(int i) {
+        while (true) {
+            // Własne sprawy
+            Czytelnia.chceCzytac();
+            // Czytanie
+            Czytelnia.koniecCzytania();
+        }
+    }
+
+    // j = 0, ..., P
+    process Pisarz(int j) {
+        while (true) {
+            // Własne sprawy
+            Czytelnia.chcePisac();
+            // Pisanie
+            Czytelnia.koniecPisania();
+        }
+    }
+
+    monitor Czytelnia {
+        int czytelnicy = 0;
+        boolean pisanie = false;
+        condition czekamNaPisanie, czekamNaCzytanie;
+
+        chceCzytac() {
+            if (pisanie || !empty(czekamNaPisanie))
+                wait(czekamNaCzytanie);
+            czytelnicy++;
+            signal(czekamNaCzytanie);
+        }
+
+        chcePisac() {
+            if (czytelnicy != 0 || pisanie)
+                wait(czekamNaPisanie);
+            pisanie = true;
+        }
+
+        koniecCzytania() {
+            czytelnicy--;
+            if (czytelnicy == 0)
+                signal(czekamNaPisanie);
+        }
+
+        koniecPisania() {
+            pisanie = false;
+            if (!empty(czekamNaCzytanie))
+                signal(czekamNaCzytanie);
+            else
+                signal(czekamNaPisanie);
+        }
+    }
+\end{java}
+
+\subsection{Pięciu filozofów}
+
+Pięciu filozofów siedzi przy okrągłym stole, przed każdym stoi talerz i między talerzami leżą widelce. Każdy filozof myśli, a gdy zgłodnieje, sięga po widelce znajdujące się po jego prawej i lewej stronie, po czym rozpoczyna posiłek. Gdy już się naje, odkłada widelce i ponownie oddaje się myśleniu. Schemat działania filozofa jest więc następujący:
+\begin{java}
+    // i = 0, ..., 4
+    process Filozof(int i) {
+        while (true) {
+            mysli();
+            protokolWstepny();
+            je();
+            protokolKoncowy();
+        }
+    }
+\end{java}
+
+Należy tak napisać protokoły wstępny i końcowy, aby:
+\begin{itemize}
+    \item Jednocześnie tym samym widelcem jadł co najwyżej jeden filozof (\textbf{bezpieczeństwo}).
+    \item Każdy filozof jadł zawsze dwoma (i zawsze tymi, które leżą przy jego talerzu) widelcami (\textbf{bezpieczeństwo}).
+    \item Żaden filozof nie umarł z głodu (\textbf{żywotność}).
+\end{itemize}
+
+Chcemy ponadto, aby każdy filozof działał w ten sam sposób.
+
+Pierwszy pomysł rozwiązania polega na tym, aby każdy filozof, gdy zgłodnieje, sprawdzał, czy widelec po jego lewej stronie jest wolny. Jeśli tak, to filozof powinien podnieść ten widelec i oczekiwać na dostępność drugiego. Nietrudno zauważyć, że w ten sposób może dojść do zakleszczenia -- dzieje się tak, gdy filozofowie jednocześnie zgłodnieją i każdy z nich w tej samej chwili podniesie lewy widelec. Każdy oczekuje teraz na prawy widelec, ale nigdy się na niego nie doczeka.
+
+A co stałoby się, jeśli każdy filozof podnosiłby naraz oba widelce, jeśli oba są wolne? Wtedy do zakleszczenia nie dochodzi. Tym razem jednak doszłoby do zagłodzenia filozofa: jeśli dwaj sąsiedzi pewnego filozofa ,,zmówią się'' przeciw niemu, to mogą nie dopuścić do sytuacji, w której obydwa widelce będą dostępne, na zmianę blokując mu dostęp raz do prawego, raz do lewego widelca.
+
+Poprawne rozwiązanie tego problemu przedstawiono poniżej (z wykorzystaniem semaforów):
+\begin{java}
+    semaphore w[5] = {1, 1, 1, 1, 1}; // Widelce
+    semaphore lokaj = 4;
+
+    // i = 0, ..., 4
+    process Filozof(int i) {
+        while (true) {
+            // Myśli
+            P(lokaj);
+            P(w[i]);
+            P(w[(i + 1) % 5]);
+            // Je
+            V(w[(i + 1) % 5]);
+            V(w[i]);
+            V(lokaj);
+        }
+    }
+\end{java}
+
+\begin{problems}
+    \prob Rozważmy następujące (być może niepoprawne) rozwiązanie problemu ucztujących filozofów:
+    \begin{java}
+        int N = 5; // liczba filozofów
+        binary_semaphore S[N] = {1, 1, 1, 1, 1}; // ochrona widelców
+        process filozof(int i) {
+            while (true) {
+                // myśli
+                P(S[i]); // bierze lewy widelec
+                P(S[(i + 1) % N]); // bierze prawy widelec
+                // je
+                V(S[i]); // odkłada lewy widelec
+                V(S[(i + 1) % N]); // odkłada prawy widelec
+            }
+        }
+    \end{java}
+    Prawdą jest, że
+    \answers{program ma własność bezpieczeństwa}{program ma własność żywotności}{istnieje przebieg programu, w którym każdy z filozofów je nieskończenie wiele razy}
+    
+    \prob Procesy $P_1$ i $P_2$ są synchronizowane algorytmem Petersona. Wynika z tego, że
+    \answers{$P_1$ i $P_2$ wchodzą do sekcji krytycznej na zmianę}{$P_1$ wejdzie kiedyś do sekcji krytycznej}{w dowolnym momencie w sekcji krytycznej przebywa co najwyżej jeden proces}
+\end{problems}
+
+
+\section{Systemy rozproszone}
+
+% TODO
+\begin{editorsnote}
+    Ten rozdział wymaga gruntownego przeredagowania -- wypadałoby napisać coś sensownego zamiast zdawkowych informacji na temat algorytmów.
+
+    W szczególności brak tu szczegółowych informacji na temat algorytmu synchronizacji zegarów logicznych Lamporta -- a jak widać po zestawie zadań, pytania na ten temat się pojawiają i są nietrywialne.
+\end{editorsnote}
+
+\textbf{Algorytmy rozproszone} to techniki i procedury, które są stosowane do zarządzania równoczesnym działaniem procesów lub wątków w rozproszonym środowisku.
+
+\subsection{Wzajemne wykluczanie}
+Algorytmy wzajemnego wykluczania służą do zapewnienia, że dwa lub więcej procesów nie wykonują jednocześnie krytycznej sekcji kodu. Istnieje wiele algorytmów wzajemnego wykluczania, takich jak  \href{https://en.wikipedia.org/wiki/Ricart–Agrawala_algorithm}{algorytm Ricarta-Agrawali} korzystający z komunikacji asynchronicznej, czy algorytm Nielsena-Misuno opierający się o metodę żetonową. Te algorytmy umożliwiają procesom uzyskanie dostępu do wspólnego zasobu w sposób chroniony przed równoczesnym dostępem przez inne procesy.
+
+\subsection{Synchronizacja zegarów logicznych}
+W rozproszonym środowisku, gdzie procesy działają na różnych węzłach, trudno jest utrzymać dokładną synchronizację zegarów. Algorytmy synchronizacji zegarów logicznych, takie jak \href{https://en.wikipedia.org/wiki/Lamport_timestamp}{algorytm Lamporta}, umożliwiają procesom osiągnięcie względnej synchronizacji czasu. Dzięki temu można ustalić porządek wykonywania zdarzeń na różnych węzłach, niezależnie od różnic w czasie systemowym.
+
+\subsubsection{Algorytm synchronizacji zegarów logicznych Lamporta}
+\textbf{Działanie}:\\
+
+Algorytm opiera się na przesyłaniu wiadomości między procesami oraz wykorzystaniu wartości zegarów logicznych. Każdy proces utrzymuje lokalny zegar logiczny, który jest zwiększany w momencie wystąpienia lokalnych zdarzeń. Po otrzymaniu wiadomości, proces aktualizuje wartość swojego zegara, biorąc pod uwagę zarówno swoje lokalne zdarzenia, jak i zdarzenia związane z otrzymanymi wiadomościami. Proces zwiększa wartość zegara do maksimum spośród swojej wartości zegara i wartości otrzymanej z wiadomości, a następnie dodaje 1.
+
+\textbf{Wykorzytanie}:
+\begin{itemize}
+    \item Algorytmy wzajemnego wykluczania w systemach rozproszonych (np. w algorytmie Ricarta-Agrawali)
+    \item Rozproszone systemy plików
+\end{itemize}
+
+\subsection{Uzgadnianie}
+Algorytmy uzgadniania są stosowane w celu osiągnięcia konsensusu między wieloma procesami w rozproszonym środowisku, w którym niektóre węzły mogą być wadliwe. Często wymagane jest podjęcie decyzji wspólnie przez wszystkie procesy, na przykład w przypadku ustalania globalnego stanu systemu lub wyboru lidera. Algorytmy takie jak \href{https://www.isical.ac.in/~ansuman/dist_sys/PhaseKing.pdf}{algorytm króla} czy \href{https://en.wikipedia.org/wiki/Paxos_(computer_science)}{algorytm Paxos} umożliwiają procesom osiągnięcie jednomyślnego porozumienia.
+
+\begin{problems}
+    \prob W systemie rozproszonym działa $N$ procesów, które mogą komunikować się parami, każdy z każdym. Jeden z procesów chce rozgłosić pewną informację wszystkim pozostałym procesom. Informacja jest na tyle krótka, że mieści się w jednym komunikacie. Przyjmijmy, że przesłanie pojedynczego komunikatu pomiędzy dwoma procesami zajmuje jedną jednostkę czasu. Istnieje schemat komunikacji między $N$ procesami, w którym rozgłoszenie informacji do wszystkich procesów
+    \answers{trwa $O(N)$ jednostek czasu}{trwa $O(\log N)$ jednostek czasu}{wymaga rozesłania łącznie $O(\log N)$ komunikatów}
+
+    \prob Algorytm synchronizacji zegarów logicznych Lamporta
+    \answers{służy do synchronizacji zegara systemowego z siecią przy starcie systemu operacyjnego}{poprawia zegar logiczny procesu na podstawie otrzymanych komunikatów}{może cofnąć zegar logiczny}
+    % {NIE}{TAK}{NIE}
+
+    \prob Zegary logiczne Lamporta
+    \answers{służą do walidacji pamięci podręcznych w systemach rozproszonych}{są wykorzystywane w algorytmie Ricarta-Agrawali wzajemnego wykluczania w systemach rozproszonych}{służą do synchronizacji czasu w sieciowym systemie plików NFS}
+    % {NIE?}{TAK?}{TAK?}
+\end{problems}
+
+\begin{solutions}
+    \sol Rozważmy następujący program wykonywany przez trzy procesy:
+    \begin{cpp}
+        int x = 0;
+
+        process P(int id) { // id = 0, 1, 2
+            int y;
+            for (i = 0; i < 5; i++) {
+                y = x;
+                y = y + 1;
+                x = y;
+            }
+        }
+    \end{cpp}
+
+    Istnieje taki przeplot, że wartość zmiennej $x$ po zakończeniu wszystkich trzech procesów jest równa
+    \answerss{15}{3}{2}{TAK}{TAK}{TAK}
+
+    Zauważmy, że wartość $x = 15$ będzie uzyskana, gdy wszystkie procesy wykonają się w całości jeden po drugim. W związku z tym odpowiedź \textbf{A.} jest prawdziwa.
+
+    Wartość $x = 2$ będzie uzyskana przy następującym przeplocie:
+    \begin{itemize}
+        \item $P_0$ zapisuje $y = 0$ i zawiesza się.
+        \item $P_1$ wykonuje się w całości, zostawiając $x = 5$.
+        \item $P_2$ wykonuje 4 obroty pętli. Wtedy $x = 9$ i zanim $P_2$ rozpocznie piąty obrót pętli, zawiesza się.
+        \item $P_0$ dokańcza pierwszy obrót pętli, zapisując $x = 1$ i zawieszając się.
+        \item $P_2$ zapisuje $y = 1$ i zawiesza się.
+        \item $P_0$ wykonuje wszystkie pozostałe obroty pętli i zapisując $x = 5$, kończy przebieg.
+        \item $P_2$ kończy ostatni obrót pętli, zapisując $x = 2$.
+    \end{itemize}
+    Widzimy więc, że odpowiedź \textbf{C.} również jest prawdziwa.
+
+    Nietrudno zmodyfikować powyższy przeplot, aby uzyskać wartość $x = 3$: wystarczy na przykład, aby $P_2$ wykonał (w odpowiednim momencie) 3 zamiast 4 obrotów pętli, dzięki czemu w ostatnim kroku będzie miał do zrobienia 2 zamiast 1 obrotu pętli i zapisze $x = 3$. Odpowiedź \textbf{B.} jest więc prawdziwa.
+
+    % Błażej
+    \sol Dany jest następujący program wzajemnego wykluczania dla dwóch procesów:
+    \begin{cpp}
+        int jest[2] = (0, 0);
+        
+        process P(int id) { /* id = 0 lub id = 1 */
+            while (true) {
+                /* sekcja lokalna */
+                while (jest[1 - id]);        // (*)
+                jest[id] = 1;                // (*)
+                /* sekcja krytyczna */
+                jest[id] = 0;
+            }
+        }
+    \end{cpp}
+    Taki program
+    \answerss{ma własność bezpieczeństwa}{ma własność żywotności}{będzie miał własność żywotności, kiedy zamienimy kolejność wierszy oznaczonych gwiazdką}{NIE}{NIE}{NIE}
+
+    % Julia
+    \sol Własność żywotności rozwiązania problemu wzajemnego wykluczania oznacza, że
+    \answerss{każdy proces kiedyś wejdzie do sekcji krytycznej}{w sekcji krytycznej zawsze znajdzie się co najwyżej jeden proces}{każdy proces wchodzi do sekcji krytycznej bez czekania}{TAK}{NIE}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Wynika to bezpośrednio z definicji żywotności.
+
+        \item Jest to własność bezpieczeństwa, a nie własność żywotności.
+
+        \item Definicja żywotności nie mówi o niczym takim. Dodatkowo, gdyby każdy proces wchodził do sekcji krytycznej bez czekania, to nie zostałaby zachowana własność bezpieczeństwa.
+    \end{enumerate}
+
+    \begin{enumerate}[\bf A.]
+        \item Początkowo tablica \javainline{jest[]} ma oba pola wyzerowane. Może wystąpić przeplot, w którym pierwszy proces przejdzie przez pętlę \javainline{while (jest[1 - id])}, po czym drugi proces również przejdzie przez pętlę (zanim pierwszy proces wykona \javainline{jest[id] = 1}), przez co oba procesy trafią jednocześnie do sekcji krytycznej.
+
+        \item Jeden z procesów może w łatwy sposób zagłodzić drugi: wystarczy, że ten drugi przez cały czas trwania będzie otrzymywał czas procesora wyłącznie w przypadku, w którym nie będzie mógł przejść przez pętlę \javainline{while (jest[1 - id])}. Tym sposobem nie wejdzie on nigdy do sekcji krytycznej.
+
+        \item Po zamianie wierszy oznaczonych gwiazdką można doprowadzić do zakleszczenia. Wystarczy, że oba procesy najpierw wykonają instrukcję \javainline{jest[id] = 1}, a dopiero potem razem wejdą do pętli \javainline{while (jest[1 - id])}, w której utkną w nieskończoność.
+    \end{enumerate}
+
+    % Błażej
+    \sol Dany jest kod dla dwóch procesów:
+    \begin{java}
+        boolean czeka1, czeka2;
+        
+        process P1() {
+            czeka1 = false;
+            while (true) {
+                czeka1 = true;
+                while (czeka2) {}
+                // Sekcja krytyczna.
+                czeka1 = false;
+            }
+        }
+        
+        process P2() {
+            czeka2 = false;
+            while (true) {
+                czeka2 = true;
+                while (czeka1) {}
+                // Sekcja krytyczna.
+                czeka2 = false;
+            }
+        }
+    \end{java}
+    Taki program
+    \answerss{wykorzystuje aktywne czekanie}{zapewnia żywotność}{zapewnia bezpieczeństwo}{TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Tak, wprost z definicji aktywnego oczekiwania.
+
+        \item Rozwiązanie można zakleszczyć w bardzo prosty sposób: oba procesy najpierw ustawiają swoje zmienne \texttt{czeka} na \textbf{true}, a następnie oba procesy wchodzą do pętli \javainline{while (czeka)}, w której utkną w nieskończoność, tworząc deadlock.
+
+        \item Gdyby każdy z procesów znalazł się w jednym momencie w sekcji krytycznej, to obie zmienne czeka musiałyby mieć wartość \textbf{false} (tak aby żaden z procesów nie zatrzymał się w pętli przed sekcją krytyczną). Nietrudno zauważyć, że taka sytuacja jest niemożliwa.
+    \end{enumerate}
+
+    % Błażej
+    \sol Synchronizacja za pomocą blokad wirujących (ang. \textit{spinlock})
+    \answerss{pozwala uniknąć przełączania kontekstu niezbędnego w przypadku konieczności wstrzymania procesu}{zapewnia żywotność}{w systemach z pamięcią podręczną wykorzystuje lokalne aktywne oczekiwanie (sprawdzana jest wartość zapisana w pamięci podręcznej)}{TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Tak, jest to jedna z nielicznych zalet używania spinlocka.
+
+        \item Nie, spinlock może doprowadzić do zagłodzenia.
+
+        \item Tak, jest to cecha szczególna dla systemów z pamięcią podręczną.
+    \end{enumerate}
+
+    \sol W sali wystawowej może jednocześnie przebywać co najwyżej $K$ osób. Wystawę zwiedzają grupy reprezentowane przez procesy \texttt{Grupa}. Parametrem procesu \texttt{Grupa} jest liczba osób w grupie, będąca liczbą dodatnią mniejszą bądź równą $K$. Jeśli grupa w całości nie mieści się w sali, musi poczekać. Rozważmy następujące rozwiązanie tego zadania korzystające z semafora silnego $S$ o wartości początkowej $K$.
+    \begin{java}
+        process Grupa (int liczność) {
+            while (true) {
+                for (int i = 0; i < liczność; ++i) P(S); // Grupa czeka na miejsce.
+                // Grupa zwiedza wystawę.
+                for (int i = 0; i < liczność; ++i) V(S); // Grupa opuszcza wystawę.
+                // Grupa odpoczywa.
+            }
+        }
+    \end{java}
+    Prawdą jest, że
+    \answerss{rozwiązanie ma własność bezpieczeństwa}{rozwiązanie ma własność żywotności}{istnieje taka liczba grup i takie wykonanie programu, w którym pewna grupa zwiedza wystawę nieskończenie wiele razy}{TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Ponieważ sekcja krytyczna (zwiedzanie wystawy) jest chroniona semaforem, rozwiązanie ma własność bezpieczeństwa.
+
+        \item W łatwy sposób może dojść do zakleszczenia: przypuśćmy, że mamy 2 grupy po 2 osoby, a wystawę mogą jednocześnie zwiedzać dwie osoby. Wystarczy, że na semaforze zawiesi się po jednej osobie z każdej z obu grup -- wtedy nikt nie zwiedza wystawy, a semafor jest zablokowany i nikt go nie zwolni.
+
+        \item Tak: wystarczy przyjąć, że istnieje tylko jedna grupa.
+    \end{enumerate}
+
+    \sol Niech $S$ będzie semaforem binarnym. Oto rozwiązanie problemu wzajemnego wykluczania dla dowolnej liczby procesów:
+    \begin{java}
+        // Sekcja lokalna.
+        P(S);
+        // Sekcja krytyczna.
+        V(S);
+    \end{java}
+    Jeśli $S$
+    \answerss{ma wartość początkową $0$, to powyższe rozwiązanie ma własność bezpieczeństwa}{ma wartość początkową $0$, to żaden z procesów nie zostanie zagłodzony}{ma wartość początkową $1$, to powyższe rozwiązanie ma własność bezpieczeństwa}
+    {TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Wtedy po prostu każdy zawiesi się na semaforze i nikt nigdy nie wejdzie do sekcji krytycznej -- rozwiązanie jest więc bezpieczne.
+
+        \item Każdy zostanie zagłodzony, bo każdy zawiesi się na semaforze.
+
+        \item Sekcja krytyczna jest chroniona semaforem binarnym, więc nie ma możliwości, żeby dwa procesy naraz weszły do sekcji krytycznej -- rozwiązanie jest bezpieczne.
+    \end{enumerate}
+
+    % Grześ
+    \sol Rozważmy rozwiązanie problemu wzajemnego wykluczania $N \geq 3$ procesów przy użyciu semafora $S$~o~wartości początkowej równej 1.
+    \begin{cpp}
+        process P(int id) {
+            while (true) {
+                /* sekcja lokalna */
+                P(S);
+                /* sekcja krytyczna */
+                V(S);
+            }
+        }
+    \end{cpp}
+    Prawdą jest, że
+    \answerss{jeśli semafor $S$ jest semaforem słabym, to rozwiązanie jest żywotne}{jeśli semafor $S$ jest semaforem Dijkstry i $N \leq 2$, to rozwiązanie jest żywotne}{rodzaj semafora $S$ nie ma wpływu na bezpieczeństwo rozwiązania}{NIE}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Rozważmy przypadek, gdzie mamy $N=3$ procesy oraz przeplot, w którym pierwszy z nich wchodzi do sekcji krytycznej, a pozostałe czekają na semaforze. Następnie, po wyjściu z sekcji krytycznej proces 1 obudzi proces 2, po czym zawiesi się na $S$. Proces 2 wychodząc z sekcji obudzi proces 1 i się zawiesi -- i tak w kółko. Proces 3 zostaje w ten sposób zagłodzony, więc rozwiązanie nie jest żywotne.
+
+        \item Dla $N \leq 2$ rozwiązanie jest żywotne (nie ma kto być zagłodzony, ponieważ maksymalnie jeden proces będzie czekał na semaforze).
+
+        \item Niezależnie od tego, jaki semafor to by nie był, nie ma opcji, żeby dwa procesy przeszły przez semafor o wartości początkowej 1.
+    \end{enumerate}
+
+    % Grześ
+    \sol Zgodnie z semantyką klasycznych monitorów (Hoare'a), proces może zostać wstrzymany
+    \answerss{przed rozpoczęciem wykonania funkcji eksportowanej przez monitor}{wskutek wykonania operacji \texttt{wait()} na zmiennej warunkowej wewnątrz monitora}{wskutek wykonania operacji \texttt{signal()} na zmiennej warunkowej wewnątrz monitora}{TAK}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Jeżeli jakiś proces jest w monitorze, to nowo przybyły zawiesi się na kolejce do wejścia do monitora.
+
+        \item Operacja \texttt{wait()} zawsze wstrzymuje proces.
+
+        \item Jeśli proces obudzi inny proces operacją \texttt{signal()}, to sam zostaje wstrzymany (idzie na początek kolejki wejścia do monitora).
+    \end{enumerate}
+
+    % Błażej
+    \sol Operacja \texttt{signal()} wykonana przez proces $Q$ na zmiennej warunkowej $c$, na której czeka dokładnie jeden proces $P$
+    \answerss{w semantyce Hoare'a powoduje wyjście procesu $Q$ z monitora i wstawienie go do kolejki związanej ze zmienną warunkową $c$}{zarówno w semantyce Hoare'a, jak i w semantyce Mesy gwarantuje, że proces $P$ zostanie kiedyś obudzony z warunku $c$}{w semantyce Mesy powoduje wyjście aktualnie wykonującego się procesu z monitora i ustawienie go na początku kolejki na wejściu do monitora}{NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Zgodnie z semantyką Hoare'a, proces sygnalizujący, który faktycznie budzi inny proces ze zmiennej warunkowej, zostaje umieszczony na początku kolejki procesów oczekujących na wejście do monitora (a nie: związanej ze zmienną warunkową).
+
+        \item W semantyce Hoare'a proces $P$ zostanie obudzony natychmiast, a semantyka Mesy gwarantuje silną uczciwość kolejek.
+
+        \item Jest to charakterystyczne zachowanie dla semantyki Hoare'a, a nie Mesy.
+    \end{enumerate}
+
+    \sol Semafor silny
+    \answerss{gwarantuje silną uczciwość przy budzeniu uśpionych na nim procesów}{jest szczególnym przypadkiem semafora słabego (tzn. każdy semafor silny jest semaforem słabym)}{może być zaimplementowany za pomocą monitorów z semantyką Hoare'a}
+    {NIE}{TAK}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Zauważmy, że kolejka w silnym semaforze może być priorytetowa i wtedy procesy o wyższej randze mogą zagłodzić te o niższej.
+        \item Tak, kolejność wynikająca z kolejkowania jest szczególnym przypadkiem losowej kolejności semafora słabego.
+        \item Tak: po wejściu do monitora sprawdzana jest ,,wartość semafora'' i jeżeli pozwala na wykonanie akcji, to jest ona wykonywana, a jeżeli nie, to proces zawiesza się na zmiennej warunkowej. Budzenie odbywa się podczas operacji opuszczania semafora przez inny proces.
+    \end{enumerate}
+
+    % Kasia K
+    \sol Proces może wysłać wiadomość do samego siebie w trybie
+    \answerss{bezpośredniej komunikacji asynchronicznej}{bezpośredniej komunikacji synchronicznej}{komunikacji z użyciem przestrzeni krotek}{TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Tak -- proces nie musi czekać na odbiór wiadomości i zna swój identyfikator.
+        \item Nie -- proces zawiesi się na procesie wysyłania i nigdy nie odbierze wiadomości. 
+        \item Tak -- proces nie musi czekać na odbiór wiadomości.
+    \end{enumerate}
+
+    % Błażej
+    \sol Rozważmy następujące (być może niepoprawne) rozwiązanie problemu ucztujących filozofów:
+    \begin{java}
+        int N = 5; // liczba filozofów
+        binary_semaphore S[N] = {1, 1, 1, 1, 1}; // ochrona widelców
+        process filozof(int i) {
+            while (true) {
+                // myśli
+                P(S[i]); // bierze lewy widelec
+                P(S[(i + 1) % N]); // bierze prawy widelec
+                // je
+                V(S[i]); // odkłada lewy widelec
+                V(S[(i + 1) % N]); // odkłada prawy widelec
+            }
+        }
+    \end{java}
+    Prawdą jest, że
+    \answerss{program ma własność bezpieczeństwa}{program ma własność żywotności}{istnieje przebieg programu, w którym każdy z filozofów je nieskończenie wiele razy}{TAK}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Nie jest trudno zauważyć, że ani nie uzyskamy sytuacji, w której ktoś je niesąsiadującym widelcem, ani sytuacji, w której ktoś je bez użycia dwóch widelców.
+
+        \item Łatwo o zakleszczenie: każdy z filozofów jednocześnie pobiera pierwszy widelec, a potem w nieskończoność oczekuje na drugi.
+
+        \item Tak, wystarczy nie dopuścić do zagłodzenia, czyli sytuacji opisanej w podpunkcie \textbf{B.}
+    \end{enumerate}
+
+    % Julia
+    \sol Procesy $P_1$ i $P_2$ są synchronizowane algorytmem Petersona. Wynika z tego, że
+    \answerss{$P_1$ i $P_2$ wchodzą do sekcji krytycznej na zmianę}{$P_1$ wejdzie kiedyś do sekcji krytycznej}{w dowolnym momencie w sekcji krytycznej przebywa co najwyżej jeden proces}{NIE}{NIE}{TAK}
+
+    \begin{enumerate}[\bf A.]
+        \item Może się zdarzyć, że proces $P_1$ będzie wykonywał długo sekcję lokalną, przez co $P_2$ zdąży w tym czasie wejść do sekcji krytycznej kilka razy.
+
+        \item $P_1$ może się zapętlić albo ulec awarii podczas wykonywania sekcji lokalnej i nigdy nie wejść do sekcji krytycznej.
+
+        \item Tak, ponieważ algorytm Petersona zapewnia własność bezpieczeństwa.
+    \end{enumerate}
+
+    \sol W systemie rozproszonym działa $N$ procesów, które mogą komunikować się parami, każdy z każdym. Jeden z procesów chce rozgłosić pewną informację wszystkim pozostałym procesom. Informacja jest na tyle krótka, że mieści się w jednym komunikacie. Przyjmijmy, że przesłanie pojedynczego komunikatu pomiędzy dwoma procesami zajmuje jedną jednostkę czasu. Istnieje schemat komunikacji między $N$ procesami, w którym rozgłoszenie informacji do wszystkich procesów
+    \answerss{trwa $O(N)$ jednostek czasu}{trwa $O(\log N)$ jednostek czasu}{wymaga rozesłania łącznie $O(\log N)$ komunikatów}
+    {TAK}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Taką złożoność ma najprostsze rozwiązanie, tj. każdy proces przekazuje komunikat następnikowi, aż wszyscy otrzymają wiadomość. Zajmie to $O(N)$ jednostek czasu.
+
+        \item Aby uzyskać czas logarytmiczny, możemy ułożyć procesy w strukturę drzewa binarnego. Rozsyłanie rozpocznie proces będący w wierzchołku. Każdy proces po otrzymaniu komunikatu roześle go do swoich synów. Przekazanie wiadomości w ten sposób zajmie $O(\log N)$ jednostek czasu (procesy znajdujące się na tym samym poziomie głębokości przesyłają wiadomość jednocześnie, co pozwala zaoszczędzić czas).
+
+        \item Ponieważ odbiorcą każdego komunikatu może być tylko jeden proces, nie ma możliwości, aby rozesłanie informacji do wszystkich wymagało rozesłania mniej niż $O(N)$ komunikatów.
+    \end{enumerate}
+
+    % Kasia K
+    \sol Algorytm synchronizacji zegarów logicznych Lamporta
+    \answerss{służy do synchronizacji zegara systemowego z siecią przy starcie systemu operacyjnego}{poprawia zegar logiczny procesu na podstawie otrzymanych komunikatów}{może cofnąć zegar logiczny}{NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Nie, bo jest to tylko zegar logiczny.
+        \item Tak, w dokładnie taki sposób jest zrealizowany algorytm.
+        \item Nie, zegar logiczny za każdym razem może być tylko zwiększany.
+    \end{enumerate}
+
+    % TODO
+    \textbf{\red{przyp. red.: upewnić się, że rozwiązanie jest poprawne}}
+
+    \sol Zegary logiczne Lamporta
+    \answerss{służą do walidacji pamięci podręcznych w systemach rozproszonych}{są wykorzystywane w algorytmie Ricarta-Agrawali wzajemnego wykluczania w systemach rozproszonych}{służą do synchronizacji czasu w sieciowym systemie plików NFS}{NIE?}{TAK}{TAK?}
+
+    % TODO
+    \textbf{\red{przyp. red.: TODO}}
+
+\end{solutions}

@@ -1,0 +1,1393 @@
+\chapter{Bazy danych}
+
+Materiały teoretyczne z baz danych zostały opracowane na podstawie \href{https://mst.mimuw.edu.pl/wyklady/bad/wyklad.pdf}{skryptu Zbigniewa Jurkiewicza}, materiałów \href{https://www.mimuw.edu.pl/~fmurlak/}{Filipa Murlaka} oraz \href{https://www.overleaf.com/read/gwpgjmvkvrjz}{notatek z wykładu} Jana Kwiatkowskiego i Błażeja Wilkoławskiego.
+
+\section*{Podstawa programowa}
+\begin{enumerate}
+    \item \textbf{Relacyjny model danych}.
+    \item Podstawowe konstrukcje języka \textbf{SQL} i sposoby ich realizacji.
+    \item \textbf{Rodzaje metadanych} i ich rola.
+    \item \textbf{Redundancja} a postacie normalne.
+    \item Przejście od \textbf{modelu pojęciowego} do \textbf{modelu logicznego}.
+    \item \textbf{Fizyczna reprezentacja danych}.
+\end{enumerate}
+
+% Błażej
+\section{Relacyjny model danych}
+
+Relacyjny model danych pomaga przedstawić dane w sposób sformalizowany z użyciem języka matematyki. Opiera się on na \textbf{relacjach}, czyli tabelach z danymi, na przykład relacja \textbf{Narty} może wyglądać następująco:
+    \begin{center}
+    \begin{tabular}{c|c}
+    model & producent \\ \hline
+    Cool Minx & Atomic \\
+    Jewel Cristal & Salomon              
+    \end{tabular}
+    \end{center}
+
+Strukturę danych i powiązania między nimi opisuje się w schemacie bazy danych. \textbf{Schemat relacji} podaje nazwę relacji i listę jej atrybutów, można też dodatkowo określić typy atrybutów, na przykład dla powyższej tabeli narty:
+\begin{itemize}
+    \item \textbf{Narty}(model, producent)
+    \item \textbf{Narty}(model: string, producent: string)
+\end{itemize}
+
+\textbf{Schemat bazy danych} obejmuje schematy wszystkich relacji zawartych w tej bazie. W ten sposób bazę danych w modelu relacyjnym traktujemy po prostu jako kolekcję relacji.
+
+Przedstawianie danych w postaci relacji ma wiele zalet, między innymi
+\begin{itemize}
+    \item prosty model, często intuicyjnie pasujący do danych
+    \item znane własności matematyczne (\textit{algebra relacji})
+    \item podstawa języka SQL
+\end{itemize}
+
+Każda relacja powinna mieć swój \textbf{klucz}, czyli atrybut lub atrybuty takie, że w żadnych dwóch wierszach tabeli nie mogą one mieć takiej samej wartości. Klucze to pewny przypadek ograniczenia (więzów) nakładanego na bazę danych, aby zagwarantować pewne warunki poprawności.
+
+\begin{example}
+    Oto przykład pewnego schematu bazy danych. Podkreślone atrybuty są kluczami.
+    \begin{itemize}
+        \item \textbf{Narty}(\underline{model}, producent)
+        \item \textbf{Wypożyczalnie}(\underline{nazwa}, adres, telefon)
+        \item \textbf{Narciarze}(\underline{PESEL}, imię, nazwisko, adres, telefon)
+        \item \textbf{Preferencje}(\underline{narciarz}, \underline{narty})
+        \item \textbf{Wypożyczenia}(\underline{wypożyczalnia}, \underline{narty}, cena)
+        \item \textbf{Rejestracje}(\underline{narciarz}, \underline{wypożyczalnia})
+    \end{itemize}
+\end{example}
+
+\begin{exam}
+    W tabeli $R$ są tylko kolumny $A$ i $B$ oraz nie występują wartości \texttt{NULL}. Ponadto, $A$ jest kluczem głównym, liczba różnych wartości w kolumnie $A$ to $k$, a w kolumnie $B$ to $l$. Oznacza to, że zachodzi
+    \answers{$k \leqslant l$}{$k = l$}{$k \geqslant l$}
+    \bigskip
+
+    Kolumna $A$, jako kolumna kluczowa, nie może zawierać powtórzeń wartości, natomiast kolumna $B$ -- może. Przypadek $k < l$ jest więc niemożliwy (każda wartość w kolumnie $B$ jest powiązana z dokładnie jedną, unikalną wartością w kolumnie $A$). Przypadek $k = l$ jest dość oczywisty -- tworzymy tabelę, w której każdemu kluczowi z kolumny $A$ odpowiada unikalna wartość w kolumnie $B$. Gdyby wartości w kolumnie $B$ nie były jednak unikalne, czyli istniałyby dwa klucze $k_1, k_2$ o przypisanej wspólnej wartości $l_1$, to zachodziłoby $k > l$.
+
+    W związku z tym tylko odpowiedź \textbf{C.} jest prawdziwa.
+\end{exam}
+
+\subsection{Algebra relacji}
+
+Algebra relacji to model teoretyczny do opisywania semantyki relacyjnych baz danych. Jej operacje zostały dobrane tak, aby odpowiadały typowym operacjom występującym w zapytaniach podczas wyszukiwania informacji z tabel w bazie danych.
+
+Relacje w algebrze relacji reprezentujemy ich nazwami. Z nazwą każdej nowej relacji związany jest jej schemat -- ciąg nazw atrybutów (odpowiadających kolumnom modelowanej tabeli), np.
+\begin{itemize}
+    \item $R(A, B, C)$
+    \item \textbf{Student}(numer indeksu, imię, nazwisko)
+\end{itemize}
+Nazwy atrybutów w schemacie relacji muszą być różne. Elementy relacji często nazywa się i reprezentuje jako \textbf{krotki}, które odpowiadają wierszom tabel z bazy danych. Ponieważ relacje (w algebraicznym sensie) są zbiorami, wszystkie ich krotki są różne -- powtórzenia są eliminowane i scalane w jedno.
+
+\bigskip
+
+Zestaw operacji obejmuje typowe operacje teoriomnogościowe: \textbf{sumę}, \textbf{iloczyn} i \textbf{różnicę} zbiorów. Wymaga się wtedy, aby oba argumenty miały ten sam schemat atrybutów.
+\begin{align*}
+    R \cup S &= \{(a_1, ..., a_n) \; | \; (a_1, ..., a_n) \in R \lor (a_1, ..., a_n) \in S \} \\
+    R \cap S &= \{(a_1, ..., a_n) \; | \; (a_1, ..., a_n) \in R \land (a_1, ..., a_n) \in S \} \\
+    R \setminus S &= \{(a_1, ..., a_n) \; | \; (a_1, ..., a_n) \in R \land (a_1, ..., a_n) \notin S \}
+\end{align*}
+
+\textbf{Iloczyn kartezjański} $R \times S$ także jest zdefiniowany klasycznie. Ponieważ jednak argumenty mogą mieć atrybuty o takich samych nazwach, nazwy kolumn w schemacie wynikowym trzeba czasem poprzedzać nazwami relacji, z których pochodzą, na przykład dla relacji $R(A, B)$ i $S(B, C)$ schematem ich iloczynu kartezjańskiego będzie $R \times S(A, R.B, S.B, C)$.
+$$R \times S = \{(a_1, ..., a_n, b_1, ..., b_m) \; | \; (a_1, ..., a_n) \in R, \; (b_1, ..., b_m) \in S \}$$
+
+\begin{example}
+    Oto przykład dwóch prostych relacji i ich iloczynu kartezjańskiego.
+    \begin{center}
+        $R_1 = $
+        \begin{tabular}{c|c}
+            $A$ & $B$ \\ \hline
+            1 & 2 \\
+            3 & 4              
+        \end{tabular}
+        \qquad $R_2 = $
+        \begin{tabular}{c|c}
+            $B$ & $C$ \\ \hline
+            10 & 20 \\
+            30 & 40
+        \end{tabular}
+        \qquad $R_1 \times R_2 = $
+        \begin{tabular}{c|c|c|c}
+            $A$ & $R_1.B$ & $R_2.B$ & $C$ \\ \hline
+            1 & 2 & 10 & 20 \\
+            1 & 2 & 30 & 40 \\
+            3 & 4 & 10 & 20 \\
+            3 & 4 & 30 & 40 \\
+        \end{tabular}
+    \end{center}
+\end{example}
+
+Oprócz operacji teoriomnogościowych w algebrze relacji określono także kilka innych, specyficznych dla niej. Pierwsza z nich to \textbf{selekcja} (wybór), oznaczana jako $\sigma_{\text{warunek}}(R)$. Zgodnie z nazwą, wybiera ona z relacji tylko te krotki, dla których jest spełniony podany warunek.
+\begin{align*}
+    \sigma_{i=j}(R) &= \{(a_1, ..., a_n) \; | \; (a_1, ..., a_n) \in R, \; a_i = a_j \} \\
+    \sigma_{i=C}(R) &= \{(a_1, ..., a_n) \; | \; (a_1, ..., a_n) \in R, \; a_i = C \}
+\end{align*}
+
+\begin{example}
+    Oto przykład tabeli \textbf{Zwierzaki} i operacji selekcji na niej.
+    \begin{center}
+        \textbf{Zwierzaki} =
+        \begin{tabular}{c|c}
+            gatunek & imię \\ \hline
+            Papuga & Kropka \\
+            Papuga & Lulu \\
+            Papuga & Hipek \\
+            Lis & Fufu \\
+            Krokodyl & Czako \\
+        \end{tabular}
+        \qquad $\sigma_{gatunek = 'Papuga'}(\textbf{Zwierzaki}) = $
+        \begin{tabular}{c|c}
+            gatunek & imię \\ \hline
+            Papuga & Kropka \\
+            Papuga & Lulu \\
+            Papuga & Hipek \\
+        \end{tabular}
+    \end{center}
+\end{example}
+
+Podobna do selekcji jest operacja \textbf{rzutowania} (projekcji), oznaczana przez $\pi_{kolumna_1, ..., kolumna_n}(R)$: z relacji wybieramy tylko podane kolumny. Zwróćmy uwagę, że mogłoby to doprowadzić do utworzenia relacji, w której niektóre wiersze są takie same. Ponieważ jednak relacje są zbiorami, więc takie duplikaty są automatycznie eliminowane.
+$$\pi_{i_1, ..., i_k}(R) = \{(a_{i_1}, ..., a_{i_k}) \; | \; (a_1, ..., a_n) \in R \}$$
+
+\begin{example}
+    Oto przykład tabeli \textbf{Zwierzaki} i operacji rzutowania na niej.
+    \begin{center}
+        \textbf{Zwierzaki} =
+        \begin{tabular}{c|c}
+            gatunek & imię \\ \hline
+            Papuga & Kropka \\
+            Papuga & Lulu \\
+            Papuga & Hipek \\
+            Lis & Fufu \\
+            Krokodyl & Czako \\
+        \end{tabular}
+        \qquad $\pi_{gatunek}(\textbf{Zwierzaki}) = $
+        \begin{tabular}{c}
+            gatunek \\ \hline
+            Papuga \\
+            Lis \\
+            Krokodyl \\
+        \end{tabular}
+    \end{center}
+\end{example}
+
+\textbf{Złączenie naturalne} $R \bowtie S$ jest podobne do iloczynu kartezjańskiego, ale łączy ze sobą tylko niektóre pary wierszy:
+\begin{itemize}
+    \item $R$ i $S$ muszą mieć przynajmniej jedną wspólną kolumnę o tej samej nazwie
+    \item warunkiem złączenia jest równość dla wszystkich par atrybutów o tych samych nazwach
+    \item w wyniku zostaje tylko jedna kolumna z pary kolumn o tych samych nazwach
+\end{itemize}
+
+Przy złączeniach wprowadza się pojęcie \textbf{porzuconej krotki} -- jest to wiersz z jednej relacji, do którego nie pasuje żaden wiersz z drugiej relacji.
+
+W wyniku złączenia naturalnego nie rozpatruje się porzuconych krotek z żadnej relacji. Wyróżniamy także \textbf{złączenia lewo- i prawostronne} $\bowtie_L, \bowtie_R$, w których brane pod uwagę są tylko porzucone krotki z, odpowiednio, pierwszego i drugiego argumentu. Jako wypełniaczy brakujących wartości w dołączonych kolumnach używa się $\texttt{NULL}$-i.
+
+\begin{example}
+    Oto przykład tabel \textbf{Zwierzaki} i \textbf{Gatunki} oraz ich złączenia naturalnego.
+    \begin{center}
+        \textbf{Zwierzaki} =
+        \begin{tabular}{c|c}
+            gatunek & imię \\ \hline
+            Papuga & Kropka \\
+            Papuga & Lulu \\
+            Papuga & Hipek \\
+            Lis & Fufu \\
+            Krokodyl & Czako \\
+            Świnia & Bubu
+        \end{tabular}
+        \qquad \textbf{Gatunki} =
+        \begin{tabular}{c|c}
+            gatunek & kontynent \\ \hline
+            Papuga & Ameryka \\
+            Lis & Europa \\
+            Krokodyl & Afryka \\
+            Krowa & Europa
+        \end{tabular}
+        \qquad $\textbf{Zwierzaki} \bowtie \textbf{Gatunki} = $
+        \begin{tabular}{c|c|c}
+            gatunek & imię & kontynent \\ \hline
+            Papuga & Kropka & Ameryka \\
+            Papuga & Lulu & Ameryka  \\
+            Papuga & Hipek & Ameryka \\
+            Lis & Fufu & Europa \\
+            Krokodyl & Czako & Afryka
+        \end{tabular}
+    \end{center}
+
+    Porzucona krotka z tabeli \textbf{Zwierzaki} to $\{\text{Świnia}, \text{Bubu}\}$, a z tabeli \textbf{Gatunki} -- $\{\text{Krowa}, \text{Europa}\}$. Złączenie lewostronne wyglądałoby następująco:
+    \begin{center}
+        $\textbf{Zwierzaki} \bowtie_L \textbf{Gatunki} = $
+        \begin{tabular}{c|c|c}
+            gatunek & imię & kontynent \\ \hline
+            Papuga & Kropka & Ameryka \\
+            Papuga & Lulu & Ameryka  \\
+            Papuga & Hipek & Ameryka \\
+            Lis & Fufu & Europa \\
+            Krokodyl & Czako & Afryka \\
+            Świnia & Bubu & \texttt{NULL}
+        \end{tabular}
+    \end{center}
+    
+\end{example}
+
+\begin{problems}
+    \prob Przypuśćmy, że w tabeli $R$ o kolumnach $A, B, C$ para kolumn $A, B$ jest kluczem. Załóżmy też, że w tabeli $R$ nie występują wartości \texttt{NULL}, w kolumnie $A$ pojawia się dokładnie $k$ różnych wartości, w kolumnie $B$ dokładnie $l$ różnych wartości, a w kolumnie $C$ dokładnie $m$ różnych wartości. Wynika z tego, że 
+    \answers{$\min(k,l) \leq m$}{$k+l \geq m$}{$k\cdot l \geq m$}
+
+    % Błażej
+    \prob Dane są relacje $R$ i $Q$, każda zawierająca dokładnie $n$ krotek. Wynika z tego, że relacja $R\bowtie Q$ (złączenie naturalne $R$ i $Q$) ma
+    \answers{co najmniej $n$ krotek}{co najwyżej $n^2$ krotek}{dokładnie $2n$ krotek}
+\end{problems}
+
+% Kasia
+\section{Podstawowe konstrukcje języka SQL}
+
+Podstawowym językiem komunikacji z relacyjnymi bazami danych jest \textbf{SQL}. Zawiera on zarówno konstrukcje do definiowania schematu danych, jak i do operowania na zawartości bazy. Na tych drugich skupimy się w~tym rozdziale.
+
+\subsection{Zapytania i filtrowanie} % SELECT, FROM, WHERE, wartości NULL
+
+Do zadawania zapytań służy polecenie \sqlinline{SELECT}. Najprostsza jego postać ma format
+\begin{sql}
+    SELECT kolumna1, kolumna2, ...
+    FROM tabela1, tabela2, ...
+    WHERE warunek1, warunek2, ...;
+\end{sql}
+
+Realizacja takiego zapytania składa się z następujących etapów:
+\begin{enumerate}
+    \item weź tabele podane w części \sqlinline{FROM},
+    \item wybierz wiersze, używając warunku z frazy \sqlinline{WHERE} (operacja selekcji),
+    \item wybierz tylko kolumny wskazane frazą \sqlinline{SELECT} (operacja rzutowania).
+\end{enumerate}
+
+\sqlinline{SELECT} musi być pierwszą frazą zapytania. Oprócz nazw kolumn i wyrażeń nad nimi można w niej używać dodatkowo specjalnego symbolu gwiazdki (\texttt{*}) oznaczającego ,,wszystkie atrybuty relacji''.
+
+Jeśli we frazie \sqlinline{FROM} podamy więcej niż jedną tabelę, zostanie utworzony ich iloczyn kartezjański (zgodnie z definicją z algebry relacji), a następnie zapytanie będzie przetwarzane na tak powstałym iloczynie.
+
+Fraza \sqlinline{WHERE} jest opcjonalna -- jej pominięcie oznacza, że wynik będzie zawierał odpowiedniki wszystkich wierszy źródłowych tabeli. W warunkach umieszczanych po \sqlinline{WHERE} można umieszczać dowolne wyrażenia logiczne, najważniejsze elementy ich budowy to:
+\begin{itemize}
+    \item operatory arytmetyczne \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}
+    \item operatory porównywania \texttt{=}, \texttt{<>}, \texttt{<}, \texttt{>}, \texttt{<=}, \texttt{>=}, można nimi również porównywać napisy i daty
+    \item spójniki logiczne \texttt{AND}, \texttt{OR}, \texttt{NOT}
+    \item wyrażenie ,,\sqlinline{wartość IN zbiór}'' bada przynależność wartości do zbioru; zbiór może być podany jawnie przez wyliczenie elementów \texttt{(e1, e2, ..., en)} lub jako podzapytanie (\sqlinline{SELECT})
+    \item wyrażenie ,,\sqlinline{EXISTS podzapytanie}'' sprawdza, czy wynik podzapytania zawiera przynajmniej jeden rekord
+    \item wyrażenie ,,\sqlinline{wartość BETWEEN a AND b}'' sprawdza przynależność wartości do przedziału domkniętego $[a, b]$
+    \item wyrażenie ,,\sqlinline{napis LIKE wzorzec}'' sprawdza dopasowanie napisu do wzorca; wzorzec jest napisem-szablonem, w którym \texttt{\%} oznacza dowolny ciąg znaków, zaś \texttt{\_} dowolny pojedynczy znak
+\end{itemize}
+
+\begin{example}
+    W bazie istnieją dwie tabele: \textbf{Dzieci}(imię, wiek) i \textbf{Zwierzaki}(imię, wiek, gatunek). Oto kilka przykładowych zapytań:
+    \begin{sql} 
+        -- Wybieramy wyłącznie kolumnę imię z tabeli Dzieci.
+        SELECT imię FROM Dzieci;
+
+        -- Wypisujemy wszystkie możliwe krotki (imię dziecka, imię zwierzęcia).
+        SELECT Dzieci.imię, Zwierzaki.imię
+        FROM Dzieci, Zwierzaki;
+        
+        -- Wybieramy zwierzęta starsze niż 4 lata.
+        SELECT *
+        FROM Zwierzaki
+        WHERE wiek > 4;
+
+        -- Listujemy imiona wszystkich lwów starszych niż 4 lata.
+        SELECT imię
+        FROM Zwierzaki
+        WHERE gatunek = 'lew' AND wiek > 4;
+
+        -- Listujemy imiona wspólne dla pewnego dziecka i pewnego zwierzaka.
+        SELECT imię
+        FROM Dzieci
+        WHERE imię IN (SELECT imię FROM Zwierzaki);
+    \end{sql} 
+\end{example}
+
+Przy tworzeniu zapytań przydatne mogą być \textbf{aliasy} tworzone za pomocą słowa kluczowego \sqlinline{AS}. Używamy ich do nadania kolumnie, tabeli lub (pod)zapytaniu własnej, tymczasowej nazwy.
+
+W przypadku tworzenia aliasów tabel podanych po frazie \sqlinline{FROM} można pominąć \sqlinline{AS} i użyć skróconej składni, pisząc po prostu ,,\sqlinline{FROM tabela1 alias1, tabela2 alias2...}''.
+
+\begin{example}
+    W bazie danych istnieją tabele \textbf{Konsumenci}(id, imię, nazwisko) oraz \textbf{Zamówienia}(id, id\_konsumenta, data\_zamówienia). Oto kilka przykładów prawidłowego użycia aliasów w zapytaniach SQL:
+    \begin{sql}
+        -- Alias użyty jako nadanie nowej nazwy kolumnie.
+        SELECT imię + ' ' + nazwisko AS pełne_imię 
+        FROM Konsumenci;
+        
+        -- Aliasy nadające skróconą nazwę tabelom - tu można pominąć słowo AS.
+        SELECT z.id, z.data_zamówienia
+        FROM Konsumenci k, Zamówienia z
+        WHERE k.imię = 'Kamil' AND k.id = z.id_konsumenta;
+    \end{sql}
+\end{example}
+
+\begin{example}
+	W bazie danych istnieje tabela \textbf{Zwierzaki}(imię, gatunek), w której kluczem głównym jest imię. Wypiszemy wszystkie możliwe pary zwierzaków (ich imiona) tego samego gatunku.
+	
+	Będziemy chcieli unikać identycznych par typu $(x, x)$ oraz, dla ujednolicenia wyniku, w obrębie pary zachowamy porządek alfabetyczny, tzn. $(x, y)$, a nie $(y, x)$.
+	
+	Aby złączyć tabelę z nią samą, musimy użyć aliasów -- tak abyśmy mogli odnosić się do odpowiednich kolumn bez niejednoznaczności.
+	
+	\begin{sql}
+		SELECT z1.imię, z2.imię
+		FROM Zwierzaki z1, Zwierzaki z2
+		WHERE z1.gatunek = z2.gatunek AND z1.imię < z2.imię;
+	\end{sql}
+\end{example}
+
+\begin{exam}
+	Tabele \texttt{Emp} i \texttt{Dept} mają, odpowiednio, $E$ i $D$ wierszy. Zapytanie
+	\begin{center}
+		\sqlinline{SELECT * FROM Emp e, Dept d WHERE e.deptno = d.deptno}
+	\end{center}
+	\answers
+	{zawsze ma niepusty wynik, jeżeli $D \cdot E  \neq 0$}
+	{ma pesymistyczną złożoność czasową $O(D \cdot E)$}
+	{może mieć wynik rozmiaru $D \cdot E$}
+        \bigskip
+	
+	\begin{enumerate}[\bf A.]
+		\item Jeżeli żadna z wartości w kolumnie \texttt{e.deptno} nie wystąpi w \texttt{d.deptno}, to zapytanie zwróci pusty wynik, więc odpowiedź to \texttt{NIE}.
+		\item Jeżeli w kolumnach \texttt{e.deptno} i \texttt{d.deptno} występuje (łącznie) tylko jedna, ta sama wartość, to silnik bazodanowy przetwarzający zapytanie wypisze na wyjście wszystkie możliwe pary, których jest $D \cdot E$, więc odpowiedź to \texttt{TAK}.
+		\item Przykład analogiczny do \textbf{B.}: jeśli wszystkie wartości w obu kolumnach \texttt{deptno} będą takie same, to w wyniku dostaniemy $D\cdot E$ krotek.
+	\end{enumerate}
+	% NIE TAK TAK
+\end{exam}
+
+W bazach danych często przechowujemy niekompletną informację. Na takie okazje SQL posiada wyróżnioną wartość pustą -- \texttt{NULL}.
+
+Należy bardzo uważać na wartości \texttt{NULL} w warunkach. Logika dla warunków w SQL jest \textbf{trójwartościowa}: \textit{true}, \textit{false}, \textit{unknown}. Jakiekolwiek normalne porównanie z wartością \texttt{NULL} daje wynik \textit{unknown}, podobnie dla operacji arytmetycznych. Dlatego do sprawdzania wartości pustych należy używać specjalnych operatorów porównania
+\sqlinline{IS NULL} i \sqlinline{IS NOT NULL}.
+
+Przydatne może być również wyrażenie ,,\sqlinline{COALESCE(v1, v2)}''. Jego wartością jest $v_1$, o ile nie jest \texttt{NULL}-em, w przeciwnym razie $v_2$.
+
+\subsection{SQL a algebra relacji} % eliminacja powtórzeń w zapytaniach, operacje teoriomnogościowe: suma, iloczyn, różnica
+
+SQL \purple{nie jest algebrą relacji}, dlatego \textbf{powtórzenia nie są automatycznie eliminowane z tabel}. Do usuwania powtórzeń z wyników zapytań służy modyfikator \sqlinline{DISTINCT} we frazie \sqlinline{SELECT}.
+
+\begin{example}
+    W bazie istnieje tabela \textbf{Gatunki}(gatunek, kontynent). Wypiszemy zakres kontynentów, z których pochodzą wszystkie zawarte w tabeli gatunki zwierząt:
+    \begin{sql} 
+        SELECT DISTINCT kontynent
+        FROM Gatunki;
+    \end{sql}
+
+    Przy braku \sqlinline{DISTINCT} każdy kontynent zostałby wypisane wielokrotnie (tyle razy, ile razy występuje w tabeli \textbf{Gatunki}).
+\end{example}
+
+Operacje teoriomnogościowe \texttt{UNION} ($\cup$), \texttt{INTERSECT} ($\cap$) i \texttt{EXCEPT} ($\setminus$) automatycznie eliminują powtórzenia, o ile nie zastosowano modyfikatora \sqlinline{ALL}.
+
+\begin{example}
+	W bazie istnieje tabela \textbf{Zwierzaki}(imię, gatunek, wiek, waga). Rozważmy następujące zapytanie:
+	
+    \begin{sql}
+        (SELECT DISTINCT gatunek
+        FROM Zwierzaki
+        WHERE waga > 100)
+        UNION ALL
+        (SELECT DISTINCT gatunek
+        FROM Zwierzaki
+        WHERE wiek > 10);
+    \end{sql}
+    
+    Wynikiem będą gatunki zwierząt, których przynajmniej jeden osobnik waży powyżej 100 kg lub ma więcej niż 10 lat. Ponieważ zastosowano modyfikator \sqlinline{ALL}, potencjalnie pojawią się duplikaty gatunków spełniających oba powyższe warunki jednocześnie.
+\end{example}
+
+\subsection{Funkcje agregujące}
+
+Funkcje agregujące są przeznaczone do obliczania wartości parametrów statystycznych, takich jak średnia czy suma, dotyczących całej tabeli (lub wybranych grup wierszy).
+
+Standardowe funkcje agregujące to \texttt{AVG}, \texttt{COUNT}, \texttt{MAX}, \texttt{MIN} i \texttt{SUM}. Z wyjątkiem wyrażenia
+,,\sqlinline{COUNT(*)}'' \purple{wartości puste są pomijane}.
+
+Funkcji \sqlinline{COUNT} warto przyjrzeć się dokładniej:
+\begin{itemize}
+	\item \sqlinline{COUNT(*)} zlicza wiersze uzyskane w wyniku zapytania -- także takie, które zawierają wartości puste (\texttt{NULL}) w niektórych kolumnach.
+	\item \sqlinline{COUNT(nazwa_kolumny)} zlicza wartości z podanej kolumny. Powtórzenia są wliczane, ale pomijane są wiersze zawierające w tej kolumnie wartość pustą.
+	\item \sqlinline{COUNT(DISTINCT nazwa_kolumny)} zlicza liczbę \purple{różnych} wartości w podanej kolumnie.
+\end{itemize}
+
+\begin{example}
+	W bazie istnieje tabela \textbf{Zwierzaki}(imię, gatunek, wiek, waga). Obliczymy kilka statystycznych parametrów na temat niedźwiedzi:
+	
+	\begin{sql}
+		-- Średnia waga niedźwiedzi.
+		SELECT AVG(waga)
+		FROM Zwierzaki
+		WHERE gatunek = 'niedźwiedź';
+		
+		-- Liczba wszystkich niedźwiedzi.
+		SELECT COUNT(*)
+		FROM Zwierzaki
+		WHERE gatunek = 'niedźwiedź';
+		
+		-- Liczba wszystkich nazwanych niedźwiedzi.
+		SELECT COUNT(imię)
+		FROM Zwierzaki
+		WHERE gatunek = 'niedźwiedź';
+		
+		-- Liczba różnych imion nadanych niedźwiedziom.
+		SELECT COUNT(DISTINCT imię)
+		FROM Zwierzaki
+		WHERE gatunek = 'niedźwiedź';
+	\end{sql}
+\end{example}
+
+\textbf{Grupowanie}, czyli dzielenie wierszy na grupy frazą \sqlinline{GROUP BY}, ułatwia równoczesne obliczanie parametrów statystycznych dla wybranych podzbiorów wierszy. Moglibyśmy np. chcieć obliczyć średnią wagę dla każdego gatunku zwierzęcia. Służyłoby do tego zapytanie
+\begin{sql}
+	SELECT gatunek, AVG(waga)
+	FROM Zwierzaki
+	GROUP BY gatunek;
+\end{sql}
+
+Warunkiem frazy \sqlinline{WHERE} można ograniczyć grupowanie tylko do wybranych wierszy. Na przykład, dopisanie do powyższego zapytania ,,\sqlinline{WHERE wiek > 10}'' obliczyłoby dla każdego gatunku średnią wagę zwierząt mających ponad 10 lat.
+
+Czasem chcemy również filtrować wynik zapytania po warunkach dla całych grup, a nie tylko pojedynczych wierszy. Służy do tego słowo kluczowe \sqlinline{HAVING}. Na przykład zapytanie
+
+\begin{sql}
+	SELECT gatunek, AVG(waga)
+	FROM Zwierzaki
+	GROUP BY gatunek
+	HAVING COUNT(*) > 2;
+\end{sql}
+
+przy obliczaniu wyniku uwzględni tylko gatunki posiadające przynajmniej 3 zwierzaki.
+
+\begin{example}
+	Znajdziemy najwyższą średnią wagę zwierząt dla pewnego gatunku. Uwzględnimy przy tym wyłącznie gatunki mające przynajmniej 5 zwierząt, a przy liczeniu średnich weźmiemy pod uwagę tylko osobniki o wieku powyżej 4 lat.
+	
+	 W tym celu napiszemy proste zapytanie zagnieżdżone: najpierw obliczymy średnie, a potem wybierzemy największą z nich.
+	
+    \begin{sql}
+        SELECT MAX(srednia_waga)
+        FROM (SELECT gatunek, AVG(waga) as srednia_waga
+              FROM Zwierzaki
+              WHERE wiek > 4
+              GROUP BY gatunek
+              HAVING COUNT(*) > 5) Srednie;
+    \end{sql}
+\end{example}
+
+\subsection{Złączenia}
+
+Często dane w bazie są trzymane w wielu tabelach, a przy tworzeniu zapytań używamy \textbf{złączeń}. SQL ma zdefiniowane kilka standardowych operatorów złączeń do używania we frazie \sqlinline{FROM}:
+
+\begin{itemize}
+    \item \texttt{CROSS JOIN} -- standardowy iloczyn kartezjański (taki sam efekt, jak wypisanie kilku tabeli po przecinku)
+    \item \texttt{NATURAL JOIN} -- złączenie naturalne (równościowe po kolumnach o tych samych nazwach)
+    \item \texttt{(INNER) JOIN, INTERSECT} -- standardowe złączenie \purple{bez porzuconych krotek} 
+    \item \texttt{LEFT/RIGHT (OUTER) JOIN} -- złączenie uwzględniające porzucone krotki wyłącznie z lewego/prawego argumentu
+    \item \texttt{FULL (OUTER) JOIN} -- złączenie uwzględniające porzucone krotki z obu argumentów
+    
+\end{itemize}
+
+Słowo kluczowe \sqlinline{ON} określa warunek, na podstawie którego łączone są tabele. Kiedy nie ma warunku \sqlinline{ON}, kolumny są dopasowywane po nazwach -- jak w złączeniu naturalnym.
+
+\begin{example}
+    Oto przykład tabel \textbf{Sportowcy} i \textbf{Punkty}:
+	\begin{center}
+		\textbf{Sportowcy} =
+		\begin{tabular}{c|c}
+			nazwisko & imię \\ \hline
+			\purple{Abacka} & \purple{Alicja} \\
+			\teal{Babacki} & \teal{Błażej} \\
+			\orange{Cabacki} & \orange{Czesław}
+		\end{tabular}
+		\qquad \textbf{Punkty} =
+		\begin{tabular}{c|c}
+			nazwisko & punkty \\ \hline
+			\teal{Babacki} & \teal{1} \\
+			\orange{Cabacki} & \orange{2} \\
+			\gray{Dabacki} & \gray{3}
+		\end{tabular}
+	\end{center}
+
+    Rozważmy następujące zapytanie łączące obie tabele:
+	\begin{sql}
+		SELECT s.imię, p.punkty
+		FROM Sportowcy s JOIN Punkty p
+		ON s.nazwisko = p.nazwisko;
+	\end{sql}
+    przy czym słowo kluczowe \sqlinline{JOIN} będziemy kolejno zamieniać na różne rodzaje złączeń. W wyniku otrzymamy:
+    \begin{center}
+        \begin{tabular}{cccc}
+            \sqlinline{INNER JOIN} & \sqlinline{LEFT JOIN} & \sqlinline{RIGHT JOIN} & \sqlinline{FULL JOIN} \vspace{2mm} \\
+            \begin{tabular}{c|c}
+                imię & punkty \\ \hline
+                \teal{Błażej} & \teal{1} \\
+                \orange{Czesław} & \orange{2}
+            \end{tabular} &
+            \begin{tabular}{c|c}
+                imię & punkty \\ \hline
+                \purple{Alicja} & \texttt{NULL} \\
+                \teal{Błażej} & \teal{1} \\
+                \orange{Czesław} & \orange{2}
+            \end{tabular} &
+            \begin{tabular}{c|c}
+                imię & punkty \\ \hline
+                \teal{Błażej} & \teal{1} \\
+                \orange{Czesław} & \orange{2} \\
+                \texttt{NULL} & \gray{3}
+            \end{tabular} &
+            \begin{tabular}{c|c}
+                imię & punkty \\ \hline
+                \purple{Alicja} & \texttt{NULL} \\
+                \teal{Błażej} & \teal{1} \\
+                \orange{Czesław} & \orange{2} \\
+                \texttt{NULL} & \gray{3}
+            \end{tabular}
+        \end{tabular}
+    \end{center}
+\end{example}
+
+\subsection{Modyfikacja wierszy w tabeli}
+
+Nowe wiersze do tabeli wstawiamy poleceniem \sqlinline{INSERT}:
+\begin{sql}
+    INSERT INTO tabela
+    VALUES (wartosc1, wartosc2, ...);
+\end{sql}
+
+Zmian w już istniejących wierszach dokonujemy poleceniem \sqlinline{UPDATE}:
+\begin{sql}
+    UPDATE tabela
+    SET kolumna1 = wartosc1, kolumna2 = wartosc2, ...
+    WHERE warunek;
+\end{sql}
+Zmiana dotyczy wszystkich wierszy, dla których jest spełniony warunek. Jeśli warunek został pominięty, zmiana dotyczy wszystkich wierszy w tabeli.
+
+Do usuwania wierszy służy polecenie \sqlinline{DELETE}:
+\begin{sql}
+    DELETE FROM tabela
+    WHERE warunek;
+\end{sql}
+Podobnie jak poprzednio, usuwane są wszystkie wiersze, dla których spełniony jest podany warunek, a jeśli został on pominięty, usuwane są wszystkie wiersze w tabeli.
+
+\begin{problems}
+    \prob Dana jest tabela \texttt{Sprawdzian}:
+        \begin{center}
+        \begin{tabular}{c|c|c}
+        student & kolokwium & egzamin \\ \hline
+        A & 45 & \texttt{NULL} \\
+        B & \texttt{NULL} & 90 \\
+        C & 100 & 80                         
+        \end{tabular}
+        \end{center}
+    Wynik zapytania w SQL
+    \begin{sql}
+        SELECT student
+        FROM Sprawdzian
+        WHERE (kolokwium > egzamin AND egzamin > 75) OR kolokwium < 50
+    \end{sql}
+    będzie zawierał identyfikator studenta
+    \answers{A}{B}{C}
+
+    \prob W tabelach $R$ i $S$ kluczem głównym jest kolumna $A$, która jest jednocześnie jedyną kolumną. Wszystkie krotki z $R$ zawarte w $S$ zwróci zapytanie
+    \answers{\sqlinline{SELECT * FROM R WHERE EXISTS (SELECT * FROM S WHERE R.A = S.A)}}{\sqlinline{SELECT R.A FROM R LEFT JOIN S ON R.A = S.A}}{\sqlinline{(SELECT * FROM R) INTERSECT (SELECT * FROM S)}}
+
+    \prob Mamy dwie tablice $A, B$ z kolumnami kolejno $a, b$. Istnieją takie ich zawartości, że zapytanie
+    \begin{center}
+        \sqlinline{SELECT * FROM A, B WHERE A.a = B.b}
+    \end{center}
+    \answers{zwróci pusty wynik}{zwróci dokładnie $|A| \cdot |B|$ krotek}{zapętli się}
+
+    \prob Mamy relację $R$ z kolumnami $a$ oraz $b$ i wykonujemy następujące zapytanie SQL:
+    \begin{center}
+        \sqlinline{SELECT R1.a, R2.b FROM R AS R1, R AS R2}
+    \end{center}
+    W wyniku
+    \answers{znajdą się tylko krotki z $R$}{znajdą się wszystkie krotki z $R$}{nie znajdzie się żadna krotka z $R$}
+    
+    \prob Zapytanie \sqlinline{SELECT R.A FROM R} zwraca $r$ wierszy, zapytanie \sqlinline{SELECT S.A FROM S} zwraca $s$ wierszy, a~zapytanie \sqlinline{SELECT R.A FROM R WHERE R.A NOT IN (SELECT S.A FROM S)} zwraca $k$ wierszy. Wynika stąd, że
+    \answers
+    {$k = r - s$}
+    {$r - s \leq k \leq r$}
+    {$0 \leq k \leq r$}
+
+    \prob Dana jest tabela $R(a,b,c,d)$ oraz szkielet zapytania 
+    \begin{sql}
+         SELECT [...]
+         FROM R
+         GROUP BY a, b;
+    \end{sql}
+    Poprawne wyrażenie SQL otrzymamy, wstawiając w miejsce [...]
+    \answers
+    {\texttt{MIN(c + d)}}
+    {\texttt{a, b}}
+    {\texttt{b, c}}
+
+    \prob Niech $R$ będzie tabelą o dwóch kolumnach $X, Y$ oraz 0 wierszach. Rozważmy dwie instrukcje:
+    \begin{sql}
+        INSERT INTO R VALUES ('a', 'b');    -- Instrukcja A
+        DELETE FROM R WHERE X = 'a';        -- Instrukcja B
+    \end{sql}
+    W związku z tym
+    \answers
+    {dwukrotne wykonanie instrukcji A daje taki sam wynik jak jej jednokrotne wykonanie}
+    {jeśli kolumna $X$ jest kluczem głównym, to dwukrotne wykonanie instrukcji A skutkuje błędem}
+    {wykonanie instrukcji B skutkuje błędem}
+\end{problems}
+
+% Patryk
+\section{Zależności funkcyjne}
+% pojecie relacji
+Czasem tabela jest tak zaprojektowana, że po ustaleniu wartości pewnych jej atrybutów wartości jakichś innych atrybutów są jednoznacznie wyznaczone. Mamy wtedy do czynienia z \textbf{zależnością funkcyjną}.
+
+Zapis $R : A_1A_2...A_k \to B_1B_2...B_n$ oznacza, że w tabeli $R$ wartości w kolumnach $A_1, ..., A_k$ determinują wartości w kolumnach $B_1, ..., B_n$. Inaczej, jeśli dwie krotki w tabeli $R$ mają te same wartości w kolumnach $A_1, ..., A_k$, to mają też te same wartości w kolumnach $B_1, ..., B_n$.
+
+\begin{example}
+Jeśli w ZOO każdy zwierzak nazywa się inaczej, to dla relacji \textbf{Zwierzaki}(imię, gatunek, waga, wiek) zachodzi na przykład zależność
+\begin{center}
+    imię $\to$ gatunek
+\end{center}
+\end{example}
+
+Zależność funkcyjną, której prawa strona zawiera kilka atrybutów
+$$ X \to A_1 A_2 \cdots A_n $$
+można zastąpić zbiorem zależności o pojedynczych prawych stronach
+$$ X \to A_1,\; X \to A_2, \; ...,\; X \to A_n $$
+Operacja ta jest oczywiście odwracalna. Uwaga: nie wolno rozbijać lewych stron zależności!
+\bigskip
+
+Zależność $X \to Y$ nazywamy \textbf{trywialną}, jeśli spełnione jest $Y \subseteq X$, np. $AB \to A$. Zależności trywialne zachodzą zawsze i nie dostarczają żadnej informacji.
+\bigskip
+
+W posługiwaniu się zależnościami funkcyjnymi mogą pomóc \textbf{reguły wnioskowania Armstronga}:
+\begin{itemize}
+    \item \textbf{zwrotność}: jeśli $Y \subseteq X$, to zachodzi $X \to Y$ 
+    \item \textbf{rozszerzanie}: jeśli zachodzi $X \to Y$, to również $XZ \to YZ$ dla dowolnego $Z$
+    \item \textbf{przechodniość}: jeśli zachodzą $X \to Y$ i $Y\to Z$, to również $X \to Z$
+\end{itemize}
+
+\subsection{Klucze}
+
+\textbf{Nadklucz} to podzbiór $N$ zbioru atrybutów relacji $R(A_1, A_2, \cdots, A_n)$, jeśli zachodzi zależność funkcyjna
+$$
+N \to A_1A_2...A_n
+$$
+W szczególności zbiór wszystkich atrybutów relacji jest nadkluczem.
+
+\textbf{Klucz} to nadklucz składający się z minimalnej liczby kolumn, czyli nadklucz, którego żaden podzbiór (oprócz jego samego) nie jest nadkluczem.
+
+\begin{example}
+Niech w relacji \textbf{Zwierzaki}(imię, gatunek, waga, wiek) zachodzi zależność
+\begin{center}
+    imię $\to$ gatunek waga wiek
+\end{center}
+Wówczas prawdziwe są następujące stwierdzenia:
+\begin{itemize}
+    \item (imię, gatunek) jest nadkluczem w tej relacji,
+    \item (imię, gatunek) nie jest kluczem, bo (imię) też jest nadkluczem,
+    \item (imię) jest kluczem i nie ma innych kluczy.
+\end{itemize}
+\end{example}
+
+\begin{problems}
+    \prob Dana jest relacja dwuargumentowa $R = (A, B)$ z zależnością funkcyjną: $A \to B$, przy czym w żadnej kolumnie nie ma wartości \texttt{NULL}. Niech $a$ oznacza liczbę różnych wartości w kolumnie $A$, $b$ oznacza liczbę różnych wartości w kolumnie $B$, oznacza to, że
+    \answers
+    {$a \leq b$}
+    {$a \geq b$}
+    {jeśli $a>0$, to $b>0$}
+    % {NIE}{TAK}{TAK}
+
+    \prob Mamy daną relację $R(A,B,C,D)$, której kluczem jest $AB$. Wynika z tego zależność funkcyjna
+    \answers{$ABC \to D$}{$B \to A$}{$CD \to AB$}
+    % {TAK}{NIE}{NIE}
+
+    \prob Dla relacji $R(A,B,C,D)$ nie określono żadnych zależności funkcyjnych. Wynika z tego, że relacja $R$
+    \answers{ma co najmniej jeden klucz}{ma co najwyżej jeden klucz}{ma 4 klucze}
+    % {TAK}{TAK}{NIE}
+
+    \prob Dana jest tabela $R(A, B, C, D, E)$ z (jedynymi) zależnościami funkcyjnymi $$A \rightarrow B, \quad AB \rightarrow CD, \quad D \rightarrow ABCE.$$ Wynika z tego, że kluczem $R$ jest
+    \answers
+    {$A$}
+    {$AB$}
+    {$CD$}
+    % {TAK}{NIE}{NIE}
+\end{problems}
+
+\section{Redundancja, normalizacja}
+
+Jeden z celów, który staramy się osiągnąć podczas projektowania schematu bazy danych to unikanie \textbf{redundancji} (nadmiarowości). Redundancja oznacza, że niektóre informacje są zapisane w bazie danych wielokrotnie. Prowadzi to do różnych anomalii podczas modyfikacji i usuwania danych z bazy.
+
+\begin{example}
+	Oto przykład błędnego projektu bazy danych. Przypuśćmy, że mamy relację \textbf{Zwierzaki}(imię, gatunek, waga, kontynent), w której kluczem jest imię, z następującymi zależnościami:
+	$$\text{imię} \to \text{gatunek waga kontynent}, \qquad \text{gatunek} \to \text{kontynent}$$
+	
+	Występuje redundancja: nie ma potrzeby przechowywania informacji na temat kontynentu pochodzenia danego zwierzęcia w każdym wierszu, bo możemy go łatwo wyznaczyć na podstawie gatunku. Tabela zawiera w ten sposób nadmiarowe, niepotrzebne dane.
+\end{example}
+
+\textbf{Normalizacja} to proces służący do przekształcenia schematu w taki sposób, aby wyeliminować redundancję. Zależnie od potrzeb określa się różne poziomy normalizacji -- zakresy usuwania redundancji, nazywane \textbf{postaciami normalnymi}.
+
+Dotychczas formalnie zdefiniowano pięć (poziomów) postaci normalnych, choć my nie będziemy zajmować się ostatnią z nich. Tylko trzy pierwsze są powszechnie używane podczas projektowania baz danych.
+
+Postacie normalne są ponumerowane kolejno, ale istnieje postać pośrednia BCNF między 3 i 4 poziomem. Postacie o wyższych numerach automatycznie (z definicji) spełniają warunki dla niższych postaci, dlatego na przykład relacja w drugiej postaci normalnej jest automatycznie w pierwszej postaci normalnej. Odwrotne wynikanie oczywiście nie zachodzi; drugą postać normalną otrzymujemy z pierwszej po nałożeniu dodatkowego warunku.
+
+Proces normalizacji polega na \textbf{dekompozycji} tabel (rozkładu danej relacji na kilka innych) aż do otrzymania pożądanej postaci.
+\bigskip
+
+\textbf{Pierwsza postać normalna} (1NF) to najbardziej podstawowa postać normalna. W takiej relacji:
+\begin{itemize}
+	\item każdy atrybut przyjmuje wartości niepodzielne (jest wartością skalarną, a nie np. listą),
+	\item w danej kolumnie występuje tylko jeden typ danych,
+    \item nie używa się kolejności wierszy do przekazania jakiejkolwiek informacji.
+\end{itemize}
+
+\begin{example}
+Zdefiniujemy relację wypisującą dla każdego studenta listę przedmiotów, na które jest zapisany:
+\begin{center}
+    \begin{tabular}{c|c}
+     student & przedmioty \\
+     \hline
+     Grześ & BD, GAL \\
+     Patryk & BD, MD  \\
+    \end{tabular}
+\end{center}
+Taka relacja nie jest w pierwszej postaci normalnej, ponieważ w atrybucie ,,przedmioty'' występuje lista. Znormalizowana relacja wyglądałaby w następujący sposób:
+\begin{center}
+    \begin{tabular}{c|c}
+     student & przedmiot \\
+     \hline
+     Grześ & BD \\
+     Grześ & GAL \\
+     Patryk & BD \\
+     Patryk & MD \\
+    \end{tabular}
+\end{center}
+\end{example}
+
+Relacja jest w \textbf{drugiej postaci normalnej} (2NF), jeśli:
+\begin{itemize}
+    \item jest w 1NF,
+    \item jej każdy niekluczowy atrybut zależy funkcyjnie od \purple{całego} klucza, a nie tylko jego części.
+\end{itemize}
+
+\begin{example}
+Rozszerzymy relację z poprzedniego przykładu: \textbf{Zajęcia}(student, kierunek, przedmiot, ćwiczeniowiec). Zakładamy przy tym, że każdy student studiuje jeden kierunek oraz że każdy przedmiot ma kilku ćwiczeniowców do wyboru. Zależności występujące w tej tabeli to
+\begin{center}
+    student przedmiot $\to$ ćwiczeniowiec,
+    \qquad student $\to$ kierunek,
+\end{center}
+więc kluczem jest para (student, przedmiot).
+
+Oto przykładowa zawartość tej tabeli:
+\begin{center}
+    \begin{tabular}{c|c|c|c}
+     student & kierunek & przedmiot & ćwiczeniowiec \\
+     \hline
+     Grześ & MAT & BD & Zbyszek \\
+     Grześ & MAT & GAL & Męcel \\
+     Patryk & INF & BD & Murlak \\
+     Patryk & INF & MD & Amal \\
+    \end{tabular}
+\end{center}
+
+Kierunek studiów zależy tylko od części klucza, czyli atrybutu ,,student''. Relacja nie jest więc w 2NF. Należy ją zdekomponować na dwie relacje: \textbf{Zajęcia}(student, przedmiot, ćwiczeniowiec) oraz \textbf{Kierunki}(student, kierunek).
+\end{example}
+
+Relacja jest w \textbf{trzeciej postaci normalnej} (3NF), jeśli:
+\begin{itemize}
+    \item jest w 2NF,
+    \item w każdej zależności lewa strona jest nadkluczem lub prawa strona zawiera jedynie atrybuty z kluczy (kluczy może być kilka).
+\end{itemize}
+
+Oznacza to, że atrybuty niekluczowe powinny zależeć funkcyjnie wyłącznie od klucza i niczego więcej. Wykluczamy w ten sposób zależności przechodnie.
+
+\begin{example}
+Rozważmy relację \textbf{Studia}(student, rok, stopień). Relacja ta posiada dwie zależności funkcyjne:
+\begin{center}
+    student $\to$ rok stopień, \qquad rok $\to$ stopień
+\end{center} a jedynym kluczem jest atrybut ,,student''. Przykładowo:
+\begin{center}
+    \begin{tabular}{c|c|c}
+     student & rok & stopień \\
+     \hline
+     Grześ & 3 & licencjacki \\
+     Patryk & 2 & licencjacki \\
+     Paweł & 4 & magisterski \\
+    \end{tabular}
+\end{center}
+
+W przypadku drugiej zależności funkcyjnej ani lewa strona nie jest nadkluczem, ani prawa strona nie zawiera jedynie atrybutów z kluczy, więc relacja nie jest w 3NF.
+
+Z praktycznego punktu widzenia możemy też dostrzec, że aktualizując w pewnym wierszu pole ,,rok'' narażamy się na potencjalne błędy danych, ponieważ moglibyśmy zapomnieć o jednoczesnej aktualizacji stopnia. Taką relację należy zdekomponować na \textbf{Lata}(student, rok) oraz \textbf{Stopnie}(rok, stopień).
+\end{example}
+
+\textbf{Postać normalna Boyce’a-Codda (BCNF)} jest bardzo podobna do 3NF. Relacja jest w BCNF, jeśli:
+\begin{itemize}
+    \item jest w 3NF,
+    \item w każdej zależności funkcyjnej lewa strona jest nadkluczem.
+\end{itemize}
+
+\begin{example}
+Rozważmy relację \textbf{Zajęcia}(student, przedmiot, ćwiczeniowiec). Zakładamy, że każdy student może chodzić na wiele przedmiotów, każdy przedmiot może być nauczany przez wielu ćwiczeniowców, ale każdy ćwiczeniowiec może uczyć tylko jednego przedmiotu. Występujące zależności funkcyjne to:
+\begin{center}
+    student przedmiot $\to$ ćwiczeniowiec,
+    \qquad ćwiczeniowiec $\to$ przedmiot, \\ student ćwiczeniowiec $\to$ przedmiot,
+\end{center}
+więc klucze tej relacji to (student, przedmiot) oraz (student, ćwiczeniowiec). Przykładowo:
+
+\begin{center}
+    \begin{tabular}{c|c|c}
+     student & przedmiot & ćwiczeniowiec \\
+     \hline
+     Grześ & BD & Zbyszek \\
+     Grześ & GAL & Męcel \\
+     Patryk & BD & Murlak \\
+     Patryk & MD & Amal \\
+    \end{tabular}
+\end{center}
+
+Relacja ta jest w 3NF, ale nie jest w BCNF, ponieważ lewa strona drugiej zależności nie jest nadkluczem. Należy zdekomponować ją na \textbf{Ćwiczeniowcy}(ćwiczeniowiec, przedmiot) oraz \textbf{Zajęcia}(student, ćwiczeniowiec).
+\end{example}
+
+Znany jest ogólny \textbf{algorytm dekompozycji do BCNF}:
+\begin{itemize}
+    \item dopóki dla jakiejś relacji $R$ z zależnościami $F$ istnieje zależność $X \to Y$ z rozłącznymi $X, Y$ naruszająca warunek BCNF:
+    \begin{itemize}
+        \item zdekomponuj $R$ na $R'(XY)$ oraz $R''(\mathrm{sort}(R) - Y)$, gdzie $\mathrm{sort}(R)$ to zbiór wszystkich kolumn $R$
+    \end{itemize}
+\end{itemize}
+
+\begin{example}
+    Dana jest relacja $R(ABCDEF)$ z zależnościami
+    \begin{align*}
+        AB \to C, \hspace{20pt} C \to E, \hspace{20pt} D \to E, \hspace{20pt} C \to D.
+    \end{align*}
+
+    \begin{enumerate}
+        \item Zaczynamy z $R_0(ABCDEF)$. Weźmy $X_0=AB, Y_0=C$. Zauważmy, że z $X_0$ wynika $ABCDE$, ale nie wynika $F$ -- nie jest to nadklucz, więc narusza reguły BCNF.
+        \item Zgodnie z algorytmem rozbijamy $R_0$ na $R_1(ABC)$ i $R_2(ABDEF)$. 
+        \item $R_1$ jest w BCNF (w jej jedynej zależności funkcyjnej, $AB \to C$, lewa strona jest nadkluczem). W $R_2$ zachodzi $AB \to DE$, bierzemy więc $X_2=AB, Y_2=DE$. Analogicznie jak wcześniej, rozbijamy $R_2$ na $R_3(ABDE)$ oraz $R_4(ABF)$. 
+        \item $R_4$ jest w BCNF, z $R_3$ bierzemy $X_3 = D, Y_3 = E$. 
+        \item Rozbijamy na $R_5(ABD), R_6(DE)$. Cała baza jest teraz w BCNF.
+    \end{enumerate}
+\end{example}
+
+Czasem zależności funkcyjne powodują kłopoty przy przejściu do BCNF, ponieważ po takim przekształceniu niektóre zależności zostają utracone. Widzieliśmy to już w Przykładzie 5, gdzie utraciliśmy zależność ,,student przedmiot $\to$ ćwiczeniowiec". Zobaczmy jeszcze poniższy przykład.
+
+\begin{example}
+Rozważmy relację \textbf{Lokalizacje}(adres, miasto, kod pocztowy), która ma 2 klucze: (adres, miasto) oraz (adres, kod pocztowy) i 2 zależności funkcyjne:
+\begin{center}
+    adres miasto $\to$ kod pocztowy,
+    \qquad kod pocztowy $\to$ miasto
+\end{center}
+
+Zależność ,,kod pocztowy $\to$ miasto'' narusza postać BCNF, więc musimy dokonać dekompozycji tabeli \textbf{Lokalizacje} na dwie relacje: \textbf{Adresy}(adres, kod pocztowy) oraz \textbf{Kody}(kod pocztowy, miasto). Zauważmy, że utraciliśmy w ten sposób zależność
+\begin{center}
+    adres miasto $\to$ kod pocztowy,
+\end{center}
+ponieważ atrybuty te nie występują w żadnej relacji.
+\end{example}
+
+
+\begin{exam}
+Dana jest relacja $R(A, B, C, D, E)$ oraz zależności funkcyjne $A \rightarrow BC, AC \rightarrow D, D \rightarrow E$. Wówczas
+\answers{relacja $R$ ma dokładnie jeden klucz}{$R$ jest w 3NF}{$R$ można przekształcić w BCNF bez utraty zależności funkcyjnych}
+\bigskip
+
+\begin{enumerate}[\bf A.]
+    \item Na początku ustalmy klucze relacji $R$. Widzimy, że z atrybutu $A$ wynikają $BC$, więc korzystając z przechodniości zależności funkcyjnych, na podstawie $A$ możemy wywnioskować też atrybuty $D$ i $E$. Zatem kluczem jest atrybut $A$ i nietrudno sprawdzić, że nie ma innych kluczy, co powoduje że \textbf{A.} jest prawdziwe.
+
+    \item Musimy sprawdzić warunki 3NF, tj. czy lewa strona każdej zależności jest nadkluczem lub czy prawa zawiera atrybuty tylko z kluczy. Lewe strony pierwszej i drugiej zależności są nadkluczami, więc spełniają warunek 3NF. Ostatnia zależność nie spełnia żadnego z warunków postaci 3NF, więc $R$ nie jest w 3NF.
+
+    \item Przekształcimy relację $R$ do postaci BCNF i sprawdzimy czy jakieś zależności zostały utracone. Jedyną zależnością naruszającą BCNF jest $D \to E$. Zgodnie z algorytmem dekompozycji do BCNF, dekomponujemy $R$ do $R_1(DE)$ oraz $R_2(ABCD)$. Widzimy teraz, że obie relacje są w BCNF, a my nie utraciliśmy żadnych zależności.
+\end{enumerate}
+\end{exam}
+
+\begin{problems}
+    \prob Z tego, że relacja $R$ jest w drugiej postaci normalnej (2NF), wynika że
+    \answers{każda kolumna zależy funkcyjnie od całego klucza głównego}{$R$ jest w pierwszej postaci normalnej}{wszystkie pola nie będące polami klucza głównego są od niego zależne bezpośrednio}
+
+    \prob Dana jest relacja $R(A, B, C, D)$ w pierwszej postaci normalnej i zależności funkcyjne: $A \rightarrow B$, $B \rightarrow C$, $C \rightarrow A$. Wynika stąd, że relacja jest też w
+    \answers
+    {2NF}
+    {3NF}
+    {BCNF}
+
+    \prob Relacja $R$ ma kolumny $A,B,C,D,E$ i zależności funkcyjne $A\rightarrow BC$, $CA\rightarrow D$, $B\rightarrow E$. Wynika z tego, że
+    \answers{relacja $R$ ma dokładnie trzy klucze}{relacja $R$ jest w trzeciej postaci normalnej}{schemat relacji $R$ daje się sprowadzić do postaci Boyce'a-Codda z zachowaniem zależności funkcyjnych i informacji}
+
+    \prob Każda tabela w pierwszej postaci normalnej (1NF) mająca dokładnie dwie kolumny jest
+    \answers{w drugiej postaci normalnej (2NF)}{w trzeciej postaci normalnej (3NF)}{w postaci normalnej Boyce'a-Codda (BCNF)}
+
+    \prob Każda relacja
+    \answers
+    {w postaci 3NF jest także w BCNF}
+    {w postaci BCNF jest także w 3NF}
+    {dwuargumentowa jest w postaci BCNF}
+\end{problems}
+
+\section{Transakcje i współbieżność}
+
+Transakcje to jedno z podstawowych pojęć dotyczących sposobów realizacji zapytań języka SQL we współczesnych systemach baz danych. Umożliwiają one współbieżny dostęp do zawartości bazy, dostarczając niezbędnych mechanizmów synchronizacji.
+
+Istotą transakcji jest integrowanie kilku operacji w \purple{niepodzielną} całość. Jako \textbf{transakcja} rozumieć będziemy ciąg operacji na bazie danych (\sqlinline{SELECT, DELETE, UPDATE, INSERT}) zakończony potwierdzeniem zmian (\sqlinline{COMMIT}) albo ich cofnięciem (poprzez błąd systemu lub ,,na życzenie'' poprzez \sqlinline{ROLLBACK}).
+
+W trakcie wykonywania transakcja może być wycofana w dowolnym momencie. Wszelkie wprowadzone przez nią zmiany danych zostaną wtedy zignorowane. Realizacja tego mechanizmu wymaga ,,tymczasowego'' środowiska pracy -- zmiany danych są tylko obliczane i zapisywane w specjalnym dzienniku transakcji. Po pomyślnym zakończeniu wykonywania transakcji następuje jej zatwierdzenie, w wyniku czego zmiany z dziennika są utrwalane w bazie danych.
+
+\subsection{Poziomy izolacji}
+
+Aby zapobiec pewnym anomaliom danych związanych ze współbieżnym wykonywaniem transakcji, wprowadza się pojęcie \textbf{poziomu izolacji} transakcji. Poziom izolacji opisuje, jak dana transakcja chce widzieć bazę danych (i nie ma on wpływu na widzenie bazy danych przez pozostałe transakcje).
+
+Standard SQL definiuje 4 poziomy izolacji, wypisane tu od najbezpieczniejszego do najmniej restrykcyjnego:
+\begin{itemize}
+    \item \textbf{\textit{serializable}} -- gwarantuje wykonywanie transakcji w taki sposób, jakby wykonywały się \purple{w całości} (niepodzielnie) jedna po drugiej
+    \item \textbf{\textit{repeatable read}} -- kolejne odczyty (\sqlinline{SELECT}) w ramach jednej transakcji zwracają zawsze te same wiersze, ale mogą pojawić się dodatkowe wiersze (jeśli zostały w międzyczasie wstawione przez inne, zatwierdzone transakcje). Żadne już odczytane wiersze nie mogą jednak zniknąć lub zmienić swojej wartości
+    \item \textbf{\textit{read commited}} -- analogiczny do \textit{repeatable read}, ale przy kolejnych odczytach w ramach jednej transakcji, oprócz pojawienia się nowych wierszy, dotychczas odczytane wiersze mogą również zniknąć lub zmienić swoją wartość (jeśli zostały w międzyczasie usunięte lub zmodyfikowane przez inne, zatwierdzone transakcje)
+    \item \textbf{\textit{read uncommited}} -- odczyty w ramach takiej transakcji widzą zmiany dokonane przez inne \purple{jeszcze niezatwierdzone} transakcje
+\end{itemize}
+
+Można więc wyszczególnić trzy zjawiska anomalii danych związanych ze współbieżnym dostępem do nich:
+\begin{itemize}
+    \item \textbf{\textit{dirty read}} -- transakcja widzi lokalną zmianę wprowadzoną przez inną transakcję zanim ta druga zatwierdzi zmiany,
+    \item \textbf{\textit{non-repeatable read}} -- przy powtórnym wykonaniu odczytu (w ramach jednej transakcji) ginie jakiś wiersz lub ma inne wartości,
+    \item \textbf{\textit{phantom read}} -- przy powtórnym wykonaniu odczytu (w ramach jednej transakcji) pojawiają się nowe wiersze.
+\end{itemize}
+
+W poniższej tabeli zaznaczono, które z nich mogą wystąpić w każdym z czterech dostępnych poziomów izolacji:
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\newcolumntype{C}{>{\centering\arraybackslash} m{3cm}}
+\newcolumntype{D}{>{\centering\arraybackslash} m{4cm}}
+\begin{tabular}{ D | C D C}
+& dirty read & non-repeatable read & phantom read \\ \hline
+\textbf{serializable} & -- & -- & -- \\
+\textbf{repeatable read} & -- & -- & \checkmark \\
+\textbf{read commited} & -- & \checkmark & \checkmark \\
+\textbf{read uncommited} & \checkmark & \checkmark & \checkmark
+\end{tabular}
+\end{center}
+
+\begin{example}
+    W bazie istnieje tabela \textbf{Produkt}(nazwa, cena) o kluczu głównym ,,nazwa'' i początkowych wartościach:
+    \begin{center}
+        \renewcommand{\arraystretch}{1.5}
+        \newcolumntype{C}{>{\centering\arraybackslash} m{2cm}}
+        \begin{tabular}{ C | C}
+        nazwa & cena \\ \hline
+        ołówek & 20 \\
+        długopis & 30
+        \end{tabular}
+    \end{center}
+    
+    Rozważmy poniższe dwie transakcje $T_1, T_2$:
+    \begin{sql}
+    /* $T_1$ */
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    INSERT INTO Produkt VALUES (pióro, 40);                         -- operacja $S_1$
+    UPDATE Produkt SET cena = cena + 30 WHERE nazwa = 'ołówek';     -- operacja $S_2$
+    COMMIT;
+    
+    /* $T_2$ */
+    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    SELECT AVG(cena) AS a1 FROM Produkt;    -- operacja $S_3$
+    SELECT AVG(cena) AS a2 FROM Produkt;    -- operacja $S_4$
+    COMMIT;
+\end{sql}
+
+Znajdziemy wszystkie możliwe wartości \sqlinline{(a1, a2)} odczytane przez transakcję $T_2$.
+
+Ponieważ obie transakcje są na poziomie izolacji \textit{serializable}, jedyne możliwe przeploty to $T_1T_2$ albo $T_2T_1$. Stąd wyłącznymi odczytami \sqlinline{(a1, a2)}, jakie możemy uzyskać, są kolejno $(40, 40)$ i $(25, 25)$.
+\end{example}
+
+W celu zapobiegnięcia konfliktom mogącym doprowadzić do zabronionych (na danym poziomie izolacji) anomalii, używa się wewnętrznego \textbf{blokowania} dostępu do elementów używanych przez daną transakcję.
+
+\begin{example}
+Jak zmieniłyby się odczyty \sqlinline{(a1, a2)}, gdyby $T_2$ z poprzedniego przykładu była na poziomie izolacji \textit{repeatable read}, a pozostałe dane pozostały bez zmian?
+
+Poziom izolacji \textit{repeatable read} zezwala na zajście \textit{phantom read}: gdyby między wywołaniem $S_3$ i $S_4$ pojawiły się nowe wiersze w tabeli, to $S_4$ uwzględniłby je przy obliczaniu średniej.
+
+Jedynym możliwym przeplotem realizującym tę sytuację jest $S_3T_1S_4$ ($T_1$ musi wykonać się w całości, ponieważ zmiany przez nią naniesione widzimy dopiero po ich zatwierdzeniu). Zachodzi tu jednak jeszcze jedna anomalia: wykonanie $S_2$ spowoduje \textit{non-repeatable read} (aktualizację już odczytanego wiersza przez $T_2$), co nie jest dopuszczone na poziomie izolacji \textit{repeatable read}, więc transakcja $T_1$ po dojściu do operacji $S_2$ zatrzyma się (bez wykonania \sqlinline{COMMIT}) i zaczeka na wykonanie $T_2$. Jest to związane z blokadą założoną przez wykonującą się już transakcję $T_2$.
+
+Tym samym przeplot $S_3T_1S_4$ nie jest możliwy i jedynymi możliwymi parami \sqlinline{(a1, a2)} są nadal (40, 40) i (25, 25).
+\end{example}
+
+\begin{example}
+A co w przypadku, gdy $T_2$ będzie na poziomie izolacji \textit{read commited}?
+
+\textit{Read commited} dopuszcza zajście \textit{non-repeatable read} z sytuacji z poprzedniego przykładu. To umożliwi zajście przeplotu $S_3T_1S_4$ i, oprócz (40, 40) i (25, 25), będziemy w stanie uzyskać też wynik (25, 40).
+\end{example}
+
+\begin{example}
+Ostatnim rozważanym przypadkiem będzie $T_2$ na poziomie izolacji \textit{read uncommited}.
+
+Ten poziom izolacji zezwala na wszystkie wyszczególnione przez nas anomalie, w szczególności \textit{dirty reads}, czyli odczyty wprowadzonych zmian jeszcze przed ich zatwierdzeniem. Dodatkowymi możliwymi wynikami \sqlinline{(a1, a2)} są zatem:
+\begin{itemize}
+    \item (25, 30) przy przeplocie $S_3S_1S_4S_2$,
+    \item (30, 30) przy przeplocie $S_1S_3S_4S_2$,
+    \item (30, 40) przy przeplocie $S_1S_3S_2S_4$.
+\end{itemize}
+\end{example}
+
+% Kasia
+\section{Fizyczna reprezentacja danych}
+
+Znajomość fizycznej reprezentacji danych pomaga nam optymalizować realizację zapytań bazodanowych. Ponieważ dane przechowywane są na dysku, algorytmy projektujemy uwzględniając użycie \textbf{modelu I/O}.
+
+Dysk trzeba traktować inaczej niż pamięć, bo pojedynczy dostęp do dysku trwa miliony cykli procesora -- to przynajmniej 30 razy wolniej w porównaniu do pamięci operacyjnej (RAM). Dlatego będziemy skupiali się głównie na ograniczeniu odczytów i zapisów z dysku, które są najbardziej kosztownymi operacjami.
+
+W modelu I/O:
+\begin{itemize}
+    \item dane są zorganizowane w tabele składające się z rekordów (wierszy)
+    \item tabele czytamy i zapisujemy w \textbf{blokach} obejmujących pewną liczbę \purple{kolejnych} wierszy
+    \item dane na dysku mają pewną, ustaloną liczbę bloków (np. $m$), w pamięci RAM mieści się pewna inna, ustalona liczba bloków (np. $n$, przy czym zwykle $m \ll n$)
+\end{itemize}
+
+Koszt algorytmu to łączna liczba odczytów z dysku i zapisów na dysk. Projektując algorytmy w modelu I/O, będziemy więc zwracać uwagę na to, aby wczytany blok zawierał jak najwięcej przydatnych danych i aby dla raz wczytanych danych zrobić jak najwięcej, zanim się je zapisze.
+
+\subsection{Kluczowe komponenty algorytmiczne w bazach danych}
+
+Wyróżniamy trzy kluczowe komponenty algorytmów realizacji zapytań do baz danych. Rozważymy tu każdy z nich wraz z krótkim opisem na temat jego optymalnej postaci.
+
+\bigskip
+Pierwszym zagadnieniem jest \textbf{skanowanie}, czyli na przykład filtrowanie krotek tabeli względem zadanego warunku. Warto pamiętać, że:
+\begin{itemize}
+    \item zamiast przetwarzać po jednej krotce, przetwarzamy po całym bloku
+    \item wczytujemy blok po bloku do pamięci, pasujące krotki zostawiamy, resztę wyrzucamy
+    \item kiedy nazbieramy cały blok pasujących krotek, zapisujemy go na dysk
+\end{itemize}
+
+\bigskip
+Drugim aspektem jest \textbf{sortowanie}. Najbardziej optymalnym podejściem przy bazach danych jest zazwyczaj \purple{\textit{merge sort}}.
+
+Przyjmijmy, że dane na dysku mają $n$ bloków, a w pamięci mieści się jednocześnie $m$ bloków. Schemat wykonania merge sorta jest następujący:
+\begin{itemize}
+    \item podziel dane na porcje rozmiaru $m$ bloków, posortuj każdą porcję w pamięci (dowolnym, szybkim algorytmem)
+    \item po takim sortowaniu mamy $n/m$ porcji
+    \item łącz po $m$ porcji aż zostanie tylko jedna (wynikowa):
+    \begin{itemize}
+        \item wczytaj po jednym bloku każdej z $m$ porcji
+        \item łącz jak w zwykłym algorytmie \textit{merge sort}, przeglądając krotka po krotce:
+        \begin{itemize}
+            \item spośród pierwszych krotek w każdym z $m$ bloków wybierz najmniejszą
+            \item przenieś ją na bok do wypisania
+        \end{itemize}
+        \item za każdym razem, gdy uzbierasz cały blok wyjściowy, zapisz go na dysku jako kolejny
+        \item za każdym razem, gdy zużyjesz cały blok wejściowy, wczytaj kolejny z tej samej porcji
+    \end{itemize}
+\end{itemize}
+
+W ogólności można przyjąć, że taki algorytm \textit{merge sort} w modelu I/O jest \purple{liniowy}. Zarówno koszt zapisu, jak i koszt odczytu wynoszą \purple{$O(mn)$}.
+
+\bigskip
+Ostatnim rozważanym zagadnieniem będzie \textbf{wyszukiwanie}. Jeśli chcemy uniknąć przeglądania całych danych, potrzebujemy pomocniczej struktury danych. W algorytmice taka struktura nazywa się ,,słownik'', a w bazach danych -- \textbf{indeks}. Indeksy są zapisane w pamięci i służą do szybszego obliczania zapytań.
+
+Do dużych zapytań często potrzebne są indeksy złożone, których klucze składają się z kilku kolumn. Sztuka korzystania z indeksów złożonych polega na odpowiednim wyborze kolejności kolumn w indeksie. Zamiast korzystać z intuicyjnie ,,naturalnej'' kolejności kolumn, należy zacząć
+od kolumny dającej największą redukcję. Budowa optymalnych indeksów może o rząd wielkości zmienić czas wykonania zapytania.
+
+\begin{example}
+    Rozważmy indeks obejmujący kolumny (kod firmy, numer konta, rodzaj transakcji) w pewnej tabeli bazy danych dla księgowości finansowej. Jeśli istnieją tylko dwie firmy, to kolumna numeru konta redukuje liczbę wierszy wynikowych znacznie bardziej niż kolumna kodu firmy.
+
+    Podobnie, typ transakcji redukuje dalej wiersze wynikowe bardziej niż kod firmy. Tak więc optymalna kolejność kolumn w indeksie to (numer konta, rodzaj transakcji, kod firmy).
+\end{example}
+
+\begin{problems}
+    \prob Załóżmy, że tabela $T$ o kolumnach $a$ i $b$ zajmuje 1000 bloków dyskowych, a w pamięci operacyjnej jest miejsce na 11 bloków dyskowych. Wynika z tego, że ewaluacja zapytania
+    \begin{center}
+        \sqlinline{SELECT a FROM T WHERE b = (SELECT min(b) FROM T)}
+    \end{center}
+    wymaga
+    \answers{użycia indeksu}{posortowania tabeli $T$}{odczytania \emph{pewnego} bloku tabeli $T$ co najmniej 3 razy}
+
+    \prob Rozważmy tabele $R(A, B), S(B, C), T(C, A)$, przy czym w tabeli $R$ kluczem jest para kolumn $A, B$, w tabeli $S$ para kolumn $B, C$, a w tabeli $T$ kolumna $C$. Optymalną kolejnością wyliczenia złączenia naturalnego tych trzech tabel jest
+    \answers
+    {$(R \bowtie S) \bowtie T$}
+    {$(S \bowtie T) \bowtie R$}
+    {$(T \bowtie R) \bowtie S$}
+\end{problems}
+
+\begin{solutions}
+    % Patryk
+    \sol Przypuśćmy, że w tabeli $R$ o kolumnach $A, B, C$ para kolumn $A, B$ jest kluczem. Załóżmy też, że w tabeli $R$ nie występują wartości \texttt{NULL}, w kolumnie $A$ pojawia się dokładnie $k$ różnych wartości, w kolumnie $B$ dokładnie $l$ różnych wartości, a w kolumnie $C$ dokładnie $m$ różnych wartości. Wynika z tego, że 
+    \answerss{$\min(k,l) \leq m$}{$k+l \geq m$}{$k\cdot l \geq m$}{NIE}{NIE}{TAK}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Prosty kontrprzykład: wystarczy, że mamy po dwie różne wartości w kolumnach $A$ i $B$, natomiast kolumna $C$ składa się wyłącznie z powtórzeń.
+    	\item Jeśli na przykład kolumny $A$ i $B$ mają po 3 różne wartości, to możemy ułożyć z nich 9 różnych kluczy, czyli może też istnieć 9 różnych wartości w kolumnie $C$.
+    	\item Skoro para kolumn $A$, $B$ jest kluczem, możemy maksymalnie utworzyć $k \cdot l$ różnych wartości klucza -- a wartości w kolumnie $C$ nie może być więcej niż kluczy. 
+    \end{enumerate}
+
+    % Kasia K
+    \sol Dane są relacje $R$ i $Q$, każda zawierająca dokładnie $n$ krotek. Wynika z tego, że relacja $R \bowtie Q$ (złączenie naturalne $R$ i $Q$) ma
+    \answerss
+    {co najmniej $n$ krotek}
+    {co najwyżej $n^2$ krotek}
+    {dokładnie $2n$ krotek}
+    {NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item W najgorszym przypadku, gdy żadna z krotek nie spełnia warunków złączenia naturalnego, wynikowa relacja będzie rozmiaru 0, a zatem ograniczenie z dołu przez $n$ jest niepoprawne.
+        \item Wykonując złączenie naturalne dwóch relacji $A$ i $B$ (o liczbie krotek odpowiednio $k$ i $l$), możemy ograniczyć liczbę wynikowych krotek od góry przez $k \cdot l$. Maksymalny przypadek osiągamy, gdy każda krotka w relacji $A$ może być połączona z każdą krotką w relacji $B$, a zatem ograniczenie z góry przez $n^2$ jest poprawne.
+        \item Liczba krotek w wynikowej relacji zależy od danych i spełniania warunków złączenia naturalnego, przez co posiadając tylko informacje z treści zadania nie jesteśmy w stanie jednoznacznie stwierdzić, że będzie ich dokładnie $2n$. Kontrprzykładem może być relacja z pusta z podpunktu \textbf{A}.
+    \end{enumerate}
+
+    % Błażej
+    \sol Dana jest tabela \texttt{Sprawdzian}:
+        \begin{center}
+        \begin{tabular}{ccc}
+        \multicolumn{1}{c}{student} & \multicolumn{1}{c}{kolokwium} & \multicolumn{1}{c}{egzamin} \\ \hline
+        A & 45 & \texttt{NULL} \\
+        B & \texttt{NULL} & 90 \\
+        C & 100 & 80                         
+        \end{tabular}
+        \end{center}
+    Wynik zapytania w SQL
+    \begin{sql}
+        SELECT student
+        FROM Sprawdzian
+        WHERE (kolokwium > egzamin AND egzamin > 75) OR kolokwium < 50
+    \end{sql}
+    będzie zawierał identyfikator studenta
+    \answerss{A}{B}{C}{TAK}{NIE}{TAK}
+
+    W celu ustalenia odpowiedzi rozważymy, które wiersze z tabeli spełniają warunki zawarte w klauzuli \texttt{WHERE}:
+    \begin{enumerate}[\bf A.]
+        \item Warunek $45 > \texttt{NULL}$ będzie miał wartość \textit{undefined}, podobnie jak $\texttt{NULL} > 75$, stąd koniunkcja \texttt{AND} nie może zostać uznana za spełnioną. Jednakże warunek \texttt{kolokwium < 50} jest prawdziwy (45 < 50), więc alternatywa \texttt{OR} jest spełniona i student A pojawi się w wyniku zapytania.
+        \item Warunek $\texttt{NULL} > 90$ jest \textit{undefined}, co wyklucza prawdziwość koniunkcji \texttt{AND}. Sprawdzając wynik kolokwium $\texttt{NULL} < 50$, również otrzymujemy \textit{undefined}, przez co cała alternatywa \texttt{OR} nie jest spełniona i student B jest pominięty w wyniku zapytania.
+        \item Koniunkcja \texttt{AND} jest w oczywisty sposób spełniona ($100 > 80$ oraz $80 > 75$), więc cała alternatywa \texttt{OR} również i student C pojawia się w wyniku zapytania.
+    \end{enumerate}
+
+    % Filip
+    \sol W tabelach $R$ i $S$ kluczem głównym jest kolumna $A$, która jest jednocześnie jedyną kolumną. Wszystkie krotki z $R$ zawarte w $S$ zwróci zapytanie
+    \answerss{\sqlinline{SELECT * FROM R WHERE EXISTS (SELECT * FROM S WHERE R.A = S.A)}}{\sqlinline{SELECT R.A FROM R LEFT JOIN S ON R.A = S.A}}{\sqlinline{(SELECT * FROM R) INTERSECT (SELECT * FROM S)}}{TAK}{NIE}{TAK}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Zapytanie wybiera wszystkie elementy $R$, dla których istnieje bliźniacza krotka z $S$.
+    	\item Użycie \sqlinline{LEFT JOIN} sprawi, że wynik zapytania uwzględni także krotki z $R$ niezawarte w $S$ (zgodnie z definicją, będą to porzucone krotki).
+    	\item Standardowe przecięcie tabel przy użyciu \sqlinline{INTERSECT} nie uwzględnia porzuconych krotek i wypisuje część wspólną obu tabel -- a to oczywiście, w naszym przypadku, poprawny wynik.
+    \end{enumerate}
+
+    % Jasiek
+    \sol Mamy dwie tablice $A, B$ z kolumnami kolejno $a, b$. Istnieją takie ich zawartości, że zapytanie
+    \begin{center}
+        \sqlinline{SELECT * FROM A, B WHERE A.a = B.b}
+    \end{center}
+    \answerss{zwróci pusty wynik}{zwróci dokładnie $|A| \cdot |B|$ krotek}{zapętli się}{TAK}{TAK}{NIE}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Wystarczy, żeby kolumny $A.a$ oraz $B.b$ nie miały żadnego wspólnego elementu.
+    	\item Aby osiągnąć ten wynik, musimy zwrócić pełny iloczyn kartezjański tabel $A, B$. Taką sytuację uzyskamy, gdy kolumny $A.a$ oraz $B.b$ zawierają (łącznie) tylko jedną, tę samą wartość, np.:
+    	\begin{center}
+    		$A$ = \begin{tabular}{c|c}
+    			a & b \\ \hline
+    			1 & 2 \\
+    			1 & 3 \\
+    			1 & 4                        
+    		\end{tabular}
+    		\hspace{20pt}
+    		$B$ = \begin{tabular}{c|c}
+    			a & b \\ \hline
+    			5 & 1 \\
+    			6 & 1                        
+    		\end{tabular}
+    	\end{center}
+    	\item Zapytanie wykona się poprawnie, niezależnie od wartości tabel $A, B$.
+    \end{enumerate}
+
+    % Jasiek
+    \sol Mamy relację $R$ z kolumnami $a$ oraz $b$ i wykonujemy następujące zapytanie SQL:
+    \begin{center}
+        \sqlinline{SELECT R1.a, R2.b FROM R AS R1, R AS R2}
+    \end{center}
+    W wyniku
+    \answerss{znajdą się tylko krotki z $R$}{znajdą się wszystkie krotki z $R$}{nie znajdzie się żadna krotka z $R$}{NIE}{TAK}{NIE}
+    
+    Zapytanie jest iloczynem kartezjańskim tabeli $R$ ze sobą, więc w jego wyniku uzyskamy wszystkie możliwe pary postaci $(R.a, R.b)$.
+    
+    \begin{enumerate}[\bf A.]
+    	\item W wynikowej relacji mogą pojawić się krotki spoza $R$, na przykład biorąc
+    	\begin{center}
+    		$R$ = \begin{tabular}{c|c}
+    			a & b \\ \hline
+    			1 & 2 \\
+    			3 & 4                        
+    		\end{tabular}
+    	\end{center}
+    	w wyniku dostaniemy m.in. krotkę $(1, 4)$, która nie należy do oryginalnej relacji.
+    	
+    	\item W iloczynie kartezjańskim uzyskamy wszystkie możliwe pary, w szczególności także takie, które pierwotnie należały do $R$.
+    	
+    	\item Oczywista konsekwencja \textbf{B.}
+    \end{enumerate}
+
+    % Filip
+    \sol Zapytanie \sqlinline{SELECT R.A FROM R} zwraca $r$ wierszy, zapytanie \sqlinline{SELECT S.A FROM S} zwraca $s$ wierszy, a~zapytanie \sqlinline{SELECT R.A FROM R WHERE R.A NOT IN (SELECT S.A FROM S)} zwraca $k$ wierszy. Wynika stąd, że
+    \answerss
+    {$k = r - s$}
+    {$r - s \leq k \leq r$}
+    {$0 \leq k \leq r$}
+    {NIE}{TAK}{TAK}
+    
+    Analizując zapytania, dochodzimy do wniosku, że $k$ jest liczbą tych wierszy z tabeli $R$, które nie występują w tabeli $S$.
+    
+    \begin{enumerate}[\bf A.]
+    	\item To oczywiście nie musi być prawdą: wystarczy, że tabela $R$ zawiera przynajmniej jeden wiersz niewystępujący w $S$.
+    	
+    	\item W najgorszym przypadku, gdy $S \subseteq R$ mamy $k = r - s$. Szacując z drugiej strony, gdy $R \cap S = \varnothing$, jest $k = r$. Nierówności są więc prawdziwe.
+    	
+    	\item Zapytanie zwróci pewien podzbiór tabeli $R$ -- jasne jest więc, że będzie to przynajmniej 0 oraz maksymalnie $r$ wierszy.
+    \end{enumerate}
+
+    % Kasia K
+    \sol Dana jest tabela $R(a,b,c,d)$ oraz szkielet zapytania 
+    \begin{sql}
+         SELECT [...]
+         FROM R
+         GROUP BY a, b;
+    \end{sql}
+    Poprawne wyrażenie SQL otrzymamy, wstawiając w miejsce [...]
+    \answerss
+    {\texttt{MIN(c + d)}}
+    {\texttt{a, b}}
+    {\texttt{b, c}}
+    {TAK}{TAK}{NIE}
+
+    W zapytaniach z grupowaniem każda kolumna wymieniona w klauzuli \texttt{SELECT} musi albo być częścią frazy \texttt{GROUP BY}, albo być wykorzystana w funkcji agregującej.
+    
+    \begin{enumerate}[\bf A.]
+        \item Kolumny \texttt{c} i \texttt{d} nie są częścią klauzuli \texttt{GROUP BY}, ale są wykorzystane w funkcji agregującej, a zatem jest to poprawne wyrażenie.
+        \item Kolumny \texttt{a} i \texttt{b} są częścią klauzuli \texttt{GROUP BY}, a zatem jest to poprawne wyrażenie.
+        \item Kolumna \texttt{c} nie jest częścią klauzuli \texttt{GROUP BY} ani nie jest wykorzystana w funkcji agregującej, a zatem jest to niepoprawne wyrażenie.
+    \end{enumerate}
+
+    \sol Niech $R$ będzie tabelą o dwóch kolumnach $X, Y$ oraz 0 wierszach. Rozważmy dwie instrukcje:
+    \begin{sql}
+        INSERT INTO R VALUES ('a', 'b');    -- Instrukcja A
+        DELETE FROM R WHERE X = 'a';        -- Instrukcja B
+    \end{sql}
+    W związku z tym
+    \answerss
+    {dwukrotne wykonanie instrukcji A daje taki sam wynik jak jej jednokrotne wykonanie}
+    {jeśli kolumna $X$ jest kluczem głównym, to dwukrotne wykonanie instrukcji A skutkuje błędem}
+    {wykonanie instrukcji B skutkuje błędem}
+    {NIE}{TAK}{NIE}
+
+    \begin{enumerate}[\bf A.]
+        \item Jako że SQL nie jest algebrą relacji, powtórzenia w tabelach nie są automatycznie usuwane i są dozwolone. W związku z tym po dwukrotnym wykonaniu instrukcji wstawiania w tabeli znajdą się dwa (identyczne) wiersze, a po jednokrotnym -- jeden wiersz.
+
+        \item Jeśli kolumna $X$ jest kluczem głównym, to nie może zawierać zduplikowanych wartości. Próba wstawienia duplikatu wartości \texttt{'a'} w kolumnie $X$ spowoduje naruszenie ograniczenia klucza głównego, co w SQL poskutkuje błędem.
+
+        \item Wykonanie instrukcji usuwania na pustej tabeli nie wprowadzi żadnych zmian (żaden wiersz nie spełni warunku podanego w \sqlinline{WHERE}). Usunięcie nieistniejącego wiersza nie powoduje błędu SQL.
+    \end{enumerate}
+
+    % Błażej
+    \sol Dana jest relacja dwuargumentowa $R = (A, B)$ z zależnością funkcyjną: $A \to B$, przy czym w żadnej kolumnie nie ma wartości \texttt{NULL}. Niech $a$ oznacza liczbę różnych wartości w kolumnie $A$, $b$ oznacza liczbę różnych wartości w kolumnie $B$, oznacza to, że
+    \answerss
+    {$a \leq b$}
+    {$a \geq b$}
+    {jeśli $a>0$, to $b>0$}
+    {NIE}{TAK}{TAK}
+
+    Zależność $A \to B$ wyklucza sytuację $b > a$ -- zauważmy, że wtedy pewne dwie różne wartości $b_1, b_2$ byłyby przypisane do tej samej wartości $a_1$, ale z zależności $A \to B$ wynikałoby, że $b_1 = b_2$, co prowadzi do sprzeczności. Sytuacje $a = b$ oraz $a > b$ są nietrudne do uzyskania (w pierwszym przypadku każdej wartości w kolumnie $A$ jest przypisana unikalna wartość w kolumnie $B$, w drugim przypadku pewnym dwóm wartościom z kolumny $A$ jest przypisana ta sama wartość w kolumnie $B$). W związku z tym podpunkt \textbf{A.} jest fałszywy i podpunkt \textbf{B.} jest prawdziwy.
+
+    Podpunkt \textbf{C.} jest także w oczywisty sposób prawdziwy -- jeśli $a > 0$, to istnieje pewna wartość $a_1$, a~zależność $A \to B$ (oraz brak \texttt{NULL}-i) implikuje istnienie przypisanej do $a_1$ wartości $b_1$, stąd także $b > 0$.
+
+    % Julia
+    \sol Mamy daną relację $R(A,B,C,D)$, której kluczem jest $AB$. Wynika z tego zależność funkcyjna
+    \answerss{$ABC \to D$}{$B \to A$}{$CD \to AB$}{TAK}{NIE}{NIE}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Z definicji klucza wiemy, że zachodzi $AB \to D$, więc w szczególności także $ABC \to D$.
+    	\item Gdyby zachodziło $B \to A$, to $AB$ nie byłoby kluczem (który z definicji jest minimalny).
+    	\item Z definicji klucza nie wynika, że zachodzi $CD \to AB$ oraz nie mamy informacji o żadnych innych zależnościach funkcyjnych.
+    \end{enumerate}
+
+    % Patryk
+    \sol Dla relacji $R(A,B,C,D)$ nie określono żadnych zależności funkcyjnych. Wynika z tego, że relacja $R$
+    \answerss{ma co najmniej jeden klucz}{ma co najwyżej jeden klucz}{ma 4 klucze}{TAK}{TAK}{NIE}
+    
+    Skoro relacja nie ma żadnych zależności funkcyjnych, to kluczem są wszystkie jej kolumny: $ABCD$. Istnieje zatem dokładnie jeden klucz.
+
+    % Julia
+    \sol Dana jest tabela $R(A, B, C, D, E)$ z (jedynymi) zależnościami funkcyjnymi $$A \rightarrow B, \quad AB \rightarrow CD, \quad D \rightarrow ABCE.$$ Wynika z tego, że kluczem $R$ jest
+    \answerss
+    {$A$}
+    {$AB$}
+    {$CD$}
+    {TAK}{NIE}{NIE}
+
+	Ponieważ z $A$ wynika $B$, to również z $A$ wynika $CD$. Dodatkowo, ponieważ z $D$ wynika $E$, to z $A$ również wynika $E$. Zachodzi więc zależność $A \to ABCDE$, czyli $A$ jest nadkluczem, a skoro nie ma mniejszych nadkluczy, to $A$ jest także kluczem.
+	
+	$AB$ i $CD$ nie mogą być kluczami -- nie byłyby minimalne możliwe.
+
+    \sol Z tego, że relacja $R$ jest w drugiej postaci normalnej (2NF), wynika, że
+    \answerss{każda kolumna zależy funkcyjnie od całego klucza głównego}{$R$ jest w pierwszej postaci normalnej}{wszystkie pola nie będące polami klucza głównego są od niego zależne bezpośrednio}{NIE}{TAK}{TAK}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Warunek 2NF brzmi ,,każdy niekluczowy atrybut zależy funkcyjnie od całego klucza, a nie tylko jego części''. Mowa tu więc o atrybutach niekluczowych, a nie o wszystkich kolumnach. Kontrprzykładem może być relacja $R(A, B, C)$ z zależnościami $A \to B, B \to A$, w której kluczami są $AC$ i $BC$, a kolumna $B$ zależy wyłącznie od $A$.
+    	
+    	\item Zgodnie z definicją 2NF (i ogólną ideą postaci normalnych), każda relacja będąca w 2NF jest również w 1NF.
+    	
+    	\item Ponieważ zależności funkcyjne są przechodnie i rozszerzalne (reguły wnioskowania Armstronga), słowo ,,bezpośrednio'' nie ma tu większego znaczenia. Odpowiedź jest oczywiście prawdziwa: w 2NF każda kolumna niebędąca kluczową zależy bezpośrednio od całego klucza, a nie od jego części.
+    \end{enumerate}
+    
+    \sol Dana jest relacja $R(A, B, C, D)$ w pierwszej postaci normalnej i zależności funkcyjne: $A \rightarrow B$, $B \rightarrow C$, $C \rightarrow A$. Wynika stąd, że relacja jest też w
+    \answerss
+    {2NF}
+    {3NF}
+    {BCNF}
+    {TAK}{TAK}{NIE}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Wiemy, że relacja jest w 1NF. Kluczami są $AD$, $BD$ oraz $CD$, więc nie ma niekluczowych atrybutów i w szczególności nie są one zależne tylko od części klucza, stąd relacja jest również w 2NF.
+    	
+    	\item Relacja jest w 2NF. Ponadto, z lewej strony każdej zależności funkcyjnej musi być nadklucz albo z prawej strony jedynie elementy z klucza. Tutaj zawsze zachodzi warunek dla prawej strony (łatwo to sprawdzić), więc jest to 3NF.
+    	
+    	\item Aby relacja była w BCNF, z lewej strony każdej zależności musi znajdować się nadklucz, a w tym przypadku ani $A$, ani $B$, ani $C$ nie są nadkluczami.
+    \end{enumerate}
+
+    \sol Relacja $R$ ma kolumny $A,B,C,D,E$ i zależności funkcyjne $A\rightarrow BC$, $CA\rightarrow D$, $B\rightarrow E$. Wynika z tego, że
+    \answerss{relacja $R$ ma dokładnie trzy klucze}{relacja $R$ jest w trzeciej postaci normalnej}{schemat relacji $R$ daje się sprowadzić do postaci Boyce'a-Codda z zachowaniem zależności funkcyjnych i informacji}{NIE}{NIE}{NIE}
+    
+    \begin{enumerate}[\bf A.]
+    	\item Klucz to najmniejszy nadklucz i w tym przypadku jest nim $A$. Żadna inna kolumna sama w sobie nie jest nadkluczem.
+    	
+    	\item Żeby relacja była w 3NF, to po lewej stronie każdej zależności musi znajdować się nadklucz lub prawa strona musi zawierać jedynie atrybuty z kluczy. W naszym przypadku $A$ jest kluczem, a $B$ w oczywisty sposób nie jest nadkluczem, więc zależność $B\rightarrow E$ psuje 3NF.
+    	
+    	\item Zależność $B\rightarrow E$ zaburza BCNF, więc zgodnie z algorytmem dekompozycji do BCNF możemy rozbić $R$ na dwie relacje $R_1(BE)$ i $R_2(ABCD)$. Zachowane zostaną wszystkie zależności funkcyjne, a obydwie relacje są w BCNF. Problem w tym, że nie mamy założenia, że relacja $R$ jest w 1NF. Jeśli nie jest, to nie da się tego zrobić nie tracąc informacji.
+    \end{enumerate}
+
+    % Michał
+    \sol Każda tabela w pierwszej postaci normalnej (1NF) mająca dokładnie dwie kolumny jest
+    \answerss{w drugiej postaci normalnej (2NF)}{w trzeciej postaci normalnej (3NF)}{w postaci normalnej Boyce'a-Codda (BCNF)}{TAK}{TAK}{TAK}
+
+    W przypadku \textbf{A.}: przy dwóch kolumnach nie może wystąpić sytuacja, w której niekluczowy atrybut zależy funkcyjnie od części klucza -- klucz musiałby się składać co najmniej z dwóch kolumn oraz jeszcze jedna kolumna musiałaby stanowić niekluczowy atrybut. W związku z tym relacja jest w 2NF.
+    
+    Dla \textbf{B.} i \textbf{C.}: przy dwóch kolumnach lewa strona każdej zależności funkcyjnej musi być nadkluczem, bo determinuje wszystkie wartości. Relacja jest więc w 3NF i BCNF.
+    
+    \sol Każda relacja
+    \answerss
+    {w postaci 3NF jest także w BCNF}
+    {w postaci BCNF jest także w 3NF}
+    {dwuargumentowa jest w postaci BCNF}
+    {NIE}{TAK}{NIE}
+    
+    \begin{enumerate}[\bf A.]
+        \item Niekoniecznie -- każda relacja w BCNF jest w 3NF (wprost z definicji), ale już nie na odwrót.
+
+        \item Tak, wprost z definicji BCNF.
+
+        \item Nie jest, nie musi być nawet w 1NF. Wystarczy na przykład, żeby jedna z kolumn trzymała wartości typu listowego, a nie będzie spełniony warunek z 1NF o niepodzielności danych.
+    \end{enumerate}
+
+    % Michał
+    \sol Załóżmy, że tabela $T$ o kolumnach $a$ i $b$ zajmuje 1000 bloków dyskowych, a w pamięci operacyjnej jest miejsce na 11 bloków dyskowych. Wynika z tego, że ewaluacja zapytania
+    \begin{center}
+        \sqlinline{SELECT a FROM T WHERE b = (SELECT min(b) FROM T)}
+    \end{center}
+    wymaga
+    \answerss{użycia indeksu}{posortowania tabeli $T$}{odczytania \emph{pewnego} bloku tabeli $T$ co najmniej 3 razy}{NIE}{NIE}{NIE}
+
+    Rozważmy najbardziej brutalny algorytm: będziemy przechodzić przez całą tabelę, wczytując ją blok po bloku (wystarczy nam miejsce na 1 blok w pamięci). Przy pierwszym przejściu znajdziemy minimalną wartość $b$, a przy drugim będziemy szukać wierszy, w których wartość $b$ jest równa tej minimalnej.
+    
+    Nie używamy tutaj ani indeksów, ani sortowania, więc \textbf{A.} i \textbf{B.} są fałszywe. Dodatkowo, każdy blok tabeli zostanie odczytany 2 razy, co pokazuje fałszywość podpunktu \textbf{C.}
+
+    Dygresja: opisane wyżej podejście można by zoptymalizować do jednego odczytu, tworząc indeks, który pozwala nam ,,od razu'' wyznaczyć \sqlinline{min(b)}.
+
+    \sol Rozważmy tabele $R(A, B), S(B, C), T(C, A)$, przy czym w tabeli $R$ kluczem jest para kolumn $A, B$, w tabeli $S$ para kolumn $B, C$, a w tabeli $T$ kolumna $C$. Optymalną kolejnością wyliczenia złączenia naturalnego tych trzech tabel jest
+    \answerss
+    {$(R \bowtie S) \bowtie T$}
+    {$(S \bowtie T) \bowtie R$}
+    {$(T \bowtie R) \bowtie S$}
+    {NIE}{TAK}{NIE}
+
+    Złączenie naturalne wymaga zgodności w kolumnach o tej samej nazwie w łączonych tabelach. Optymalizacja zapytania z zadania dąży do zminimalizowania rozmiaru pośrednich tabel wynikowych.
+
+    Zaczynając od złączenia $S$ i $T$, łączymy je po kolumnie $C$ i ponieważ jest ona kluczem tabeli $T$, wynik będzie miał tyle samo wierszy, co tabela $S$ (lub mniej, jeśli w $C.S$ są wartości spoza $C.T$). Następnie złączymy $(S \bowtie T)$ z $R$ po kolumnach $A, B$.
+
+    Nietrudno zauważyć, że pozostałe warianty są mniej optymalne, ponieważ pierwsze wykonane złączenie może stworzyć dużą tabelę pośrednią, co zmniejszy wydajność całego zapytania.
+\end{solutions}

@@ -1,0 +1,638 @@
+\chapter{IPP i blok JNP}
+
+Materiały teoretyczne zostały opracowane na podstawie materiałów znalezionych w zakamarkach Internetu oraz czytanek z \href{https://moodle.mimuw.edu.pl/course/view.php?id=1047}{Moodle'a}.
+
+\section*{Podstawa programowa}
+\begin{enumerate}
+    \item Znajomość konstrukcji programistycznych \textbf{C} i \textbf{C++}.
+    \item Znajomość metod \textbf{zarządzania konfiguracjami i wersjami oprogramowania}.
+    \item Znajomość technik i narzędzi tworzenia oprogramowania (\textbf{linkowanie}, \textbf{debugowanie}, \textbf{profilowanie} itd.)
+\end{enumerate}
+
+\section{Konstrukcje programistyczne C i C++}
+
+\textbf{Klasy} w C++ definiujemy za pomocą słowa kluczowego \cppinline{class}. Każda klasa może posiadać elementy, takie jak zmienne czy deklaracje funkcji. Dodatkowo, elementy te posiadają \textbf{specyfikatory dostępu}:
+\begin{itemize}
+    \item \textbf{prywatny} (\cppinline{private}) -- elementy klasy są dostępne \purple{z innych elementów tej samej klasy},
+    \item \textbf{chroniony} (\cppinline{protected}) -- elementy są dostępne \purple{z innych elementów tej samej klasy} oraz \purple{z elementów klas dziedziczących},
+    \item \textbf{publiczny} (\cppinline{public}) -- elementy są dostępne \purple{wszędzie}, gdzie obiekt klasy jest dostępny.
+\end{itemize}
+Domyślnie zmienne oraz funkcje w ciele klasy są oznaczone jako prywatne.
+
+\subsection{Konstruktory i destruktory}
+
+Każda klasa musi posiadać \textbf{konstruktor}, czyli specjalną funkcję automatycznie wołaną podczas tworzenia nowego obiektu tej klasy, pozwalającą na inicjalizację zmiennych. Funkcja ta jest deklarowana jak zwykła funkcja, jednak jej nazwa musi być taka sama jak nazwa klasy oraz \purple{nie może zwracać żadnego typu}.
+
+Przy deklaracji obiektu danej klasy, wołany jest jej \textbf{konstruktor domyślny} (ang. \textit{default constructor}), który nie przyjmuje żadnych argumentów. Jeśli konstruktor klasy nie będzie zdefiniowany jawnie, kompilator automatycznie utworzy jej konstruktor domyślny.
+
+Każda klasa ma domyślnie zaimplementowane trzy konstruktory: wspomniany wcześniej \textit{default constructor}, \textbf{\textit{copy constructor}} i \textbf{\textit{move constructor}}. Inaczej niż konstruktor domyślny, \textit{copy constructor} i \textit{move constructor} przyjmują po jednym argumencie, będącym obiektem danej klasy. 
+
+\textit{Copy constructor} kopiuje zawartość obiektu przekazywanego w argumencie, tworząc tym samym nowy obiekt. Natomiast \textit{move constructor} tworzy nowy wskaźnik na obiekt przekazany w argumencie, dzięki czemu nic nie jest kopiowane i nowa pamięć nie jest alokowana.
+
+Podczas tworzenia nowego obiektu możemy również użyć słowa kluczowego \cppinline{new}. Tworzy on nowy obiekt (wywołując odpowiedni konstruktor) oraz zwraca adres do jego pamięci.
+\bigskip
+
+\textbf{Destruktory} pełnią odwrotną rolę do konstruktorów, czyli odpowiadają za wyczyszczenie zasobów potrzebnych przez klasę. Podobnie jak konstruktor, destruktor musi mieć taką samą nazwę jak nazwa klasy, jednak poprzedzamy ją tyldą: $\sim$. Dodatkowo, \purple{nie przyjmuje on żadnych argumentów} i \purple{nie zwraca żadnego typu}.
+
+Podobnie jak przy konstruktorach, jeśli destruktor nie zostanie jawnie zdefiniowany, kompilator automatycznie utworzy \textbf{destruktor domyślny}.
+
+\begin{example}
+    Poniżej przedstawiono implementację klasy \textit{C} z domyślnym konstruktorem i destruktorem (wygenerowanymi przez kompilator, więc niewidocznymi w kodzie):
+
+    \begin{cpp}
+    class C { 
+    public:
+      int x;
+    };
+    
+    int main() {
+      // Wywołanie konstruktora domyślnego (x nie jest inicjalizowany i zawiera śmieci)
+      C c;
+      // Brak wywołania konstruktora domyślnego. Korzysta z value initialization
+      // x zainicjalizowane na wartość domyślną dla int
+      C c1 = C();
+      // Korzysta z value initialization jak wyżej, x zainicjalizowane
+      C *pc = new C();
+      // Korzysta z uniform initialization, x zainicjalizowane
+      C c2 = {};
+      // To samo co wyżej, wykorzystywane w C++11
+      C c3{};
+      
+      return 0;
+    }
+    \end{cpp}
+\end{example}
+
+% TODO
+\begin{editorsnote}
+    Czym w powyższym przykładzie są \textit{value initialization} i \textit{uniform initialization} oraz czym się różnią? Wypadałoby to dopisać.
+\end{editorsnote}
+
+\begin{example}
+    Poniżej przedstawiono implementację klasy \textit{Circle} z jawnie zdefiniowanym konstruktorem oraz domyślnym destruktorem (wygenerowanym przez kompilator, więc niewidocznym w kodzie):
+
+    \begin{cpp}
+    class Circle {
+        double radius;
+        
+      public:
+        Circle(double r) { radius = r; }
+    };
+    
+    int main() {
+      Circle foo(10.0);   // Zwykłe wywołanie konstruktora
+      Circle bar = 20.0;  // Wywołanie konstruktora (możliwe tylko z jednym argumentem)
+      Circle baz{30.0};   // Uniform initialization
+      
+      return 0;
+    }
+    \end{cpp}
+\end{example}
+
+\subsection{Dziedziczenie}
+
+Klasy mogą \textbf{dziedziczyć} po innych klasach. Klasa dziedzicząca dziedziczy wtedy po klasie bazowej jej elementy, do których może dołożyć swoje własne. Dodatkowo, określana jest relacja dziedziczenia za pomocą słów kluczowych:
+\begin{itemize}   
+    \item \cppinline{private} -- wszystkie elementy są dziedziczone jako prywatne, \quad \textbf{\red{(przyp. red.: elementy private nie są dziedziczone w ogóle, więc to wprowadza w błąd)}} % TODO
+    \item \cppinline{protected} -- wszystkie elementy z dostępem publicznym zostaną odziedziczone z dostępem chronionym (reszta jak w klasie bazowej),
+    \item \cppinline{public} -- wszystkie elementy zostaną odziedziczone z takim samym poziomem dostępności, jak w klasie bazowej.
+\end{itemize}
+Relacja dziedziczenia dotyczy tylko elementów dziedziczonych (czyli nadal można deklarować publiczne elementy w klasie dziedziczącej z relacją \cppinline{private}). Przy braku specyfikacji relacji jest ona ustawiana na \cppinline{private}. Publicznie dziedziczona klasa dziedziczy również dostęp do konstruktorów/destruktorów klasy bazowej. Inaczej niż w Javie, \purple{klasa może dziedziczyć po kilku innych klasach}.
+
+Oczywiście, klasy dziedziczące mogą \textbf{nadpisywać} (ang. \textit{override}) elementy z klasy bazowej.
+
+\begin{example}
+    W poniższym przykładzie przedstawiono implementację klasy \textit{Employee} oraz klasy po niej dziedziczącej \textit{Programmer} z publiczną relacją dziedziczenia:
+    \begin{cpp}
+    // Klasa bazowa
+    class Employee {
+      protected:
+        int salary;
+    };
+    
+    // Klasa dziedzicząca po Employee
+    class Programmer: public Employee {
+    
+      private:
+        int code_lines = 0;
+
+      // Wiele elementów o tym samym specyfikatorze dostępu możemy deklarować grupowo
+      public:
+        int bonus;
+        void set_salary(int s) {
+          salary = s;
+        }
+        int get_salary() {
+          return salary;
+        }
+        int get_code_lines() {
+            return code_lines;
+        }
+    };
+    \end{cpp}
+\end{example}
+
+\subsection{Wskaźniki}
+Podobnie jak z innymi typami, możemy odwoływać się do obiektów przez \textbf{wskaźniki}. Do elementów klasy odwołujemy się wtedy nie przez kropkę, a przez operator \texttt{->}.
+Przypomnienie operatorów:
+\begin{itemize}
+    \item \cppinline{*x} -- wskaźnik na \texttt{x},
+    \item \cppinline{&x} -- adres \texttt{x},
+    \item \cppinline{x.y} -- \texttt{y} to element obiektu \texttt{x},
+    \item \cppinline{x->y} -- \texttt{y} to element obiektu wskazującego na \texttt{x},
+    \item \cppinline{(*x).y} -- \texttt{y} to element obiektu wskazującego na \texttt{x}.
+\end{itemize}
+
+\begin{example}
+Przykład pokazuje implementację klasy \textit{Rectangle} oraz różne metody tworzenia jej instancji za pomocą wskaźników:
+    \begin{cpp}
+    class Rectangle {
+      int width, height;
+    public:
+      Rectangle(int x, int y) : width(x), height(y) {}
+      int area(void) { return width * height; }
+    };
+    
+    int main() {
+      Rectangle obj (3, 4);
+      Rectangle *foo, *bar;
+      foo = &obj;
+      bar = new Rectangle (5, 6);
+      cout << "obj's area: " << obj.area() << '\n';
+      cout << "*foo's area: " << foo->area() << '\n';
+      cout << "*bar's area: " << bar->area() << '\n';    
+      return 0;
+    }
+    // obj's area: 12
+    // *foo's area: 12
+    // *bar's area: 30
+    \end{cpp}
+\end{example}
+
+\subsection{Metody wirtualne}
+W klasie możemy zdefiniować \textbf{wirtualne metody} za pomocą słowa kluczowego \cppinline{virtual}. Metody te są zdefiniowane w klasie bazowej i mogą zostać przedefiniowane w klasie dziedziczącej. Mogą one wtedy opcjonalnie używać słowa kluczowego \cppinline{override}(uniemożliwia ono skompilowanie kodu, w którym metoda klasy pochodnej nie będzie posiadała analogicznej metody wirtualnej w klasie bazowej).
+
+Zasady metod wirtualnych:
+\begin{itemize}
+    \item nie mogą być statyczne,
+    \item są związywane podczas wykonania programu, a nie przy jego kompilacji,
+    \item dostęp do nich powinien się odbywać przez wskaźnik lub referencję do klasy bazowej,
+    \item metody wirtualne zapewniają poprawność funkcji wołanej przez obiekt, niezależnie od typu wskaźnika/referencji użytego w trakcie wywołania,
+    \item nagłówek funkcji w klasie bazowej i dziedziczącej musi być ten sam,
+    \item klasa dziedzicząca nie musi nadpisywać metod wirtualnych z klasy bazowej (wtedy są one takie jak w klasie bazowej),
+    \item klasa może mieć wirtualny destruktor, ale nie może mieć wirtualnego konstruktora,
+    \item klasa powinna mieć wirtualny destruktor, jeśli będziemy potencjalnie chcieli usunąć instancję klasy dziedziczącej przez wskaźnik do klasy bazowej (na przykład gdy klasa bazowa ma metody wirtualne).
+\end{itemize}
+
+\begin{example}
+Przykład poniżej pokazuje różnicę pomiędzy metodami wirtualnymi (\textit{print()}) a metodami zwykłymi (\textit{show()}):
+\begin{cpp}
+    class Base {
+    public:
+        virtual void print() { cout << "print base class\n"; }
+     
+        void show() { cout << "show base class\n"; }
+    };
+     
+    class Derived : public Base {
+    public:
+        void print() { cout << "print derived class\n"; }
+     
+        void show() { cout << "show derived class\n"; }
+    };
+     
+    int main() {
+        Base* base;
+        Derived d;
+        base = &d;
+     
+        base->print(); // Wirtualna funkcja, związana podczas runtime
+        base->show();  // Niewirtualna funkcja, związana podczas kompilacji
+     
+        return 0;
+    }
+    // print derived class
+    // show base class
+\end{cpp}
+\end{example}
+
+\begin{exam}
+    Dany jest następujący kod w C++:
+    \begin{cpp}
+        class A {
+        public:
+            void m1() { std::cout << "A\n"; }
+            virtual void m2() { std::cout << "A\n"; }
+            void m3() { std::cout << "A\n"; }
+        };
+    
+        class B: public A {
+        public:
+            void m1() { std::cout << "B\n"; }
+            virtual void m2() { std::cout << "B\n"; }
+            virtual void m3() { std::cout << "B\n"; }
+        };
+    
+        int main() {
+            A* p = new B();
+            // p->m1();
+            // p->m2();
+            // p->m3();
+        }
+    \end{cpp}
+    Po odkomentowaniu następującej linijki na standardowe wyjście zostanie wypisana litera ,,B'':
+    \answers{\cppinline{p->m1();}}{\cppinline{p->m2();}}{\cppinline{p->m3();}}
+    
+    \begin{enumerate}[\bf A.]
+        \item Ponieważ metoda \texttt{m1()} nie jest metodą wirtualną w klasie \texttt{A}, to jest ona wiązana w trakcie kompilacji według typu zadeklarowanego. Zmienna $p$ jest typu \texttt{A*}, zatem zostanie wywołana metoda z klasy \texttt{A}, wypisująca literę ,,A''.
+    
+        \item Z zasad metod wirtualnych, metoda \texttt{m2()} zostanie związana w trakcie wykonywania programu, a~zatem zostanie ona wywołana z klasy \texttt{B}, wypisując literę ,,B''.
+    
+        \item Podobnie jak w podpunkcie \textbf{A.}, metoda \texttt{m3()} w klasie \texttt{A} nie jest wirtualna, zatem zostanie ona wywołana z klasy \texttt{A} (jako związana w czasie kompilacji), wypisując ,,A''.
+    \end{enumerate}
+\end{exam}
+
+Klasy, które deklarują lub dziedziczą metody wirtualne, są nazywane \textbf{klasami polimorficznymi}. 
+
+Oprócz tego mamy jeszcze \textbf{abstrakcyjne klasy bazowe}, które mogą być używane tylko jako klasy bazowe i~mogą zawierać niezdefiniowane metody wirtualne. Nie można stworzyć obiektu takich klas, ale można tworzyć wskaźniki na tę klasę. Klasy dziedziczące muszą implementować niezdefiniowane metody wirtualne z~klasy bazowej.
+
+\begin{example}
+Przykład pokazuje abstrakcyjną klasę bazową \textit{Rectangle} z niezdefiniowaną metodą wirtualną \textit{area()}:
+    \begin{cpp}
+    class Rectangle {
+      protected:
+        int width, height;
+      public:
+        void set_values (int a, int b)
+          { width = a; height = b; }
+        virtual int area () = 0; // metoda wirtualna bez definicji
+    };
+    \end{cpp}
+\end{example}
+
+\begin{problems}
+\prob Dany jest kod w C++:
+\begin{cpp}
+    #include <iostream>
+    using namespace std;
+    
+    class A {
+    public:
+        int i = 0;
+        virtual int m() { return i; }
+    };
+    
+    class B : public A {
+    public:
+        int i = 1;
+        int m() override { return i; }
+    };
+    
+    int main() {
+        A a;
+        B b;
+        A &c = b;
+        // cout << a.i;
+        // cout << a.m();
+        // cout << c.m();
+    }
+\end{cpp}
+Na wyjście zostanie wypisane \texttt{0} po uprzednim odkomentowaniu linii
+\answers{\cppinline{cout << a.i;}}{\cppinline{cout << a.m();}}{\cppinline{cout << c.m();}}
+%{TAK}{TAK}{NIE}
+
+\prob Dany jest program w C++:
+\begin{cpp}
+    #include <iostream>
+    using namespace std;
+    class A {
+    public:
+        void m1() { cout << 'A'; }
+        virtual void m2() { cout << 'B'; }
+        virtual void m3() { cout << 'C'; }
+    };
+    
+    class B: public A {
+    public:
+        void m1() { cout << 'D'; }
+        void m2() { cout << 'E'; }
+    };
+    
+    class C: public B {
+    public:
+        void m3() { cout << 'F'; }
+    };
+    
+    int main() {
+        A* a = new B();
+        a->m1();
+        a->m2();
+        a->m3();
+    }
+\end{cpp}
+Wówczas
+\answers{wywołanie metody \cppinline{a->m1()} spowoduje wypisanie litery ,,A''}{wywołanie metody \cppinline{a->m2()} spowoduje wypisanie litery ,,B''}{wywołanie metody \cppinline{a->m3() }spowoduje wypisanie litery ,,C''}
+%{TAK}{NIE}{TAK}
+
+\prob Dany jest fragment programu w C++:
+\begin{cpp}
+    class A {
+    private:
+        int i;
+    public:
+        A() { i = 13; }
+    };
+
+    class B: public A {
+    private:
+        int j;
+    };
+\end{cpp}
+W podanym fragmencie programu
+\answers{klasa \texttt{B} ma konstruktor bezparametrowy}{klasa \texttt{B} ma konstruktor bezparametrowy, odziedziczony po klasie \texttt{A}}{po utworzeniu obiektu klasy \texttt{B} jego składowa $i$ będzie miała wartość 13}
+%{TAK}{TAK}{TAK}
+
+\prob W języku C++
+\answers{zaleca się, by destruktor w klasach mających metody wirtualne był wirtualny}{wszystkie metody domyślnie są wirtualne}{przedefiniowanie (tzn. zdefiniowane z dokładnie takim samym nagłówkiem) w podklasie metody zdefiniowanej w nadklasie jako niewirtualna jest zabronione}
+%{TAK}{NIE}{NIE}
+
+\prob Dany jest kod w języku C++ w wersji 11:
+\begin{minted}{cpp}
+#include <iostream>
+
+class A {
+public:
+    virtual void m() { std::cout << "A\n"; }
+};
+
+class B : public A {
+public:
+    void m() override { std::cout << "B\n"; }
+};
+
+int main() {
+    // tutaj wstawiamy kod
+}
+\end{minted}
+Na wyjście zostanie wypisana pojedyncza litera ,,A'' po wstawieniu do funkcji \cppinline{main()} kodu
+\answers
+{\mintinline{cpp}{A a = new B(); a.m(); }}
+{\mintinline{cpp}{A* a { new B() }; a->m(); }}
+{\mintinline{cpp}{A a { B() }; a.m(); }}
+%{NIE}{NIE}{TAK}
+
+\prob Dany jest program w C++:
+\begin{cpp}
+    #include <iostream>
+    
+    class A {
+    public :
+        virtual void g() {
+            std::cout << "A";
+        }
+    };
+    
+    class C : public A {
+    public :
+        void g() {
+            std::cout << "C";
+        }
+    };
+    
+    int main() {
+        A* p = new C(); 
+        p->g();
+    }
+\end{cpp}
+W podanym programie
+\answers
+{inicjalizacja zmiennej \mintinline{cpp}{p} zostanie odrzucona przez kompilator}
+{wywołanie metody \mintinline{cpp}{p->g()} spowoduje wypisanie ,,C''}
+{wywołanie metody \mintinline{cpp}{p->g()} spowoduje wypisanie ,,AC''}
+%{NIE}{TAK}{NIE}
+\end{problems}
+
+\section{Znajomość technik i narzędzi tworzenia oprogramowania}
+
+Istnieje wiele narzędzi używanych przy pracy z C/C++. Są to oczywiście na przykład narzędzia służące do debugowania i profilowania kodu, jednakże ze względu na niskopoziomową i kompilowaną naturę tych języków w ten skład wchodzą również kompilatory/linkery, narzędzia sprawdzające poprawność zarządzania pamięcią przez program i tym podobne.
+
+\subsection{Linkowanie}
+
+Zadaniem \textbf{linkera} jest łączenie wielu plików obiektowych (z rozszerzeniem \texttt{.o}), aby utworzyć plik wykonywalny. Jest to konieczne, ponieważ kompilatory C/C++ działają tak, że kompilują każdy plik \texttt{.c} jako oddzielną jednostkę, tworząc takie niedopieczone pliki \texttt{.o}, którymi dopiero później zajmie się linker. Linker jest potrzebny, ponieważ pliki \texttt{.o} \textit{by design} są nieświadome informacji, które nie zostały wspomniane w ich kodzie źródłowym. Do tych informacji należą na przykład odwołania do funkcji zdefiniowanych w innej jednostce kompilacji. Rozważmy na przykład plik źródłowy:
+\begin{cpp}
+extern void f();
+
+int main() {
+    f();
+    return 0;
+}
+\end{cpp}
+Wygenerowany z tego pliku plik obiektowy będzie wiedział jedynie, że ma oczekiwać definicji funkcji \texttt{f()} w~jakiejś innej jednostce kompilacji. Linker, mając parę tych plików, będzie mógł poinformować ten pierwszy, gdzie jest adres treści funkcji \texttt{f()} i uzupełnić wywołanie funkcji w kodzie asemblerowym.
+
+Najpopularniejszym linkerem używanym na przykład przez \texttt{gcc} jest \texttt{ld}, który jest używany niejawnie przy wywołaniu \texttt{gcc}, żeby skompilować dane źródła kodu. Linkerów (w szczególności \texttt{ld}) raczej nie używa się bezpośrednio i jest to z reguły wszczepione w proces kompilacji, tak jak opisano powyżej w przypadku \texttt{gcc}.
+
+\subsection{Debugowanie}
+
+Narzędzia do \textbf{debugowania} pozwalają łatwo wykrywać błędy w kodzie, na przykład poprzez możliwość ustawiania breakpointów, wykonywania programu po jednej instrukcji, oglądania zawartości pamięci w danym momencie wykonania programu itp. Tego typu funkcjonalności udostępnia oprogramowanie \texttt{gdb}, które jest najczęściej używanym debuggerem programów C/C++. 
+
+Jedną z funkcji, które udostępnia \texttt{gdb}, jest możliwość uruchomienia programu i sprawdzenia, gdzie się wywalił. Przykład użycia:
+
+\begin{plain}
+\$ gdb ./example
+GNU gdb (GDB) Fedora (7.3.50.20110722-13.fc16)
+Copyright (C) 2011 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+and "show warranty" for details.
+This GDB was configured as "x86_64-redhat-linux-gnu".
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>...
+Reading symbols from /path/example...done.
+(gdb) run
+Starting program: /path/example
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000000000400527 in foo_len (s=0x0) at example.c:7
+7	  return strlen (s);
+\end{plain}
+
+\subsection{Inne narzędzia}
+
+Inne warte wspomnienia narzędzia, które pomagają w tworzeniu bezpiecznego i optymalnego kodu, to na przykład Valgrind, który służy do zapewniania, że program poprawnie zarządza pamięcią i nie powoduje wycieków pamięci. Inną grupą narzędzi są te służące do \textbf{profilowania}, tj. badania, jakie kawałki kodu zabierają najwięcej czasu podczas wykonania. Przykładami takich programów są np. Callgrind (program bliźniaczy do Valgrind), a także \texttt{perf}, często domyślnie dostępny na platformach Linux. 
+
+
+
+\begin{solutions}
+
+% Patryk
+\sol Dany jest kod w C++:
+\begin{cpp}
+    #include <iostream>
+    using namespace std;
+    
+    class A {
+    public:
+        int i = 0;
+        virtual int m() { return i; }
+    };
+    
+    class B : public A {
+    public:
+        int i = 1;
+        int m() override { return i; }
+    };
+    
+    int main() {
+        A a;
+        B b;
+        A &c = b;
+        // cout << a.i;
+        // cout << a.m();
+        // cout << c.m();
+    }
+\end{cpp}
+Na wyjście zostanie wypisane \texttt{0} po uprzednim odkomentowaniu linii
+\answerss{\cppinline{cout << a.i;}}{\cppinline{cout << a.m();}}{\cppinline{cout << c.m();}}{TAK}{TAK}{NIE}
+
+W pierwszych dwóch podpunktach obiekt klasy \texttt{A} zachowuje się zgodnie z oczekiwaniami. Jeśli chodzi o \cppinline{c.m()}, to należy pamiętać, że metody wirtualne wiązane są podczas wykonania, więc brany pod uwagę jest prawdziwy typ obiektu \texttt{b} (klasa \texttt{B}), a nie deklarowany (klasa \texttt{A}). Wypisane zostanie więc \texttt{1}.
+
+% Grześ
+\sol Dany jest program w C++:
+\begin{cpp}
+    #include <iostream>
+    using namespace std;
+    class A {
+    public:
+        void m1() { cout << 'A'; }
+        virtual void m2() { cout << 'B'; }
+        virtual void m3() { cout << 'C'; }
+    };
+    
+    class B: public A {
+    public:
+        void m1() { cout << 'D'; }
+        void m2() { cout << 'E'; }
+    };
+    
+    class C: public B {
+    public:
+        void m3() { cout << 'F'; }
+    };
+    
+    int main() {
+        A* a = new B();
+        a->m1();
+        a->m2();
+        a->m3();
+    }
+\end{cpp}
+Wówczas
+\answerss{wywołanie metody \cppinline{a->m1()} spowoduje wypisanie litery ,,A''}{wywołanie metody \cppinline{a->m2()} spowoduje wypisanie litery ,,B''}{wywołanie metody \cppinline{a->m3() }spowoduje wypisanie litery ,,C''}{TAK}{NIE}{TAK}
+Zmienna \texttt{a} jest wskaźnikiem na typ \texttt{A}, ale został użyty konstruktor podklasy \texttt{B}, więc odziedziczone zostaną metody wirtualne. Oznacza to, że wywołanie \cppinline{a->m1()} wypisze ,,A'', ponieważ jest to metoda klasy \texttt{A}. Natomiast metoda \cppinline{m2()} jest wirtualna, więc jej definicja została nadpisana przez podklasę \texttt{B} i wypisane zostanie ,,E''. Klasa \texttt{B} nie nadpisuje jednak definicji metody \cppinline{m3()}, więc podczas jej wywołania zostanie wypisane ,,C''.
+
+% Grześ
+\sol Dany jest fragment programu w C++:
+\begin{cpp}
+    class A {
+    private:
+        int i;
+    public:
+        A() { i = 13; }
+    };
+
+    class B: public A {
+    private:
+        int j;
+    };
+\end{cpp}
+W podanym fragmencie programu
+\answerss{klasa \texttt{B} ma konstruktor bezparametrowy}{klasa \texttt{B} ma konstruktor bezparametrowy, odziedziczony po klasie \texttt{A}}{po utworzeniu obiektu klasy \texttt{B} jego składowa $i$ będzie miała wartość 13}{TAK}{TAK}{TAK}
+\textbf{A.} Konstruktor bezparametrowy jest zawsze domyślnie generowany przez klasę, chyba że jawnie go usuniemy.
+
+\textbf{B.} Podklasa dziedzicząca publicznie po nadklasie dziedziczy wszystkie jej konstruktory.
+
+\textbf{C.} Tak, bo klasa \texttt{B} dziedziczy po klasie \texttt{A} zmienną $i$ oraz konstruktor ustawiający jej wartość na 13.
+
+% Grześ
+\sol W języku C++
+\answerss{zaleca się, by destruktor w klasach mających metody wirtualne był wirtualny}{wszystkie metody domyślnie są wirtualne}{przedefiniowanie (tzn. zdefiniowane z dokładnie takim samym nagłówkiem) w podklasie metody zdefiniowanej w nadklasie jako niewirtualna jest zabronione}{TAK}{NIE}{NIE}
+\textbf{A.} Tak, jest to zalecane.
+
+\textbf{B.} Metody niewirtualne są niewirtualne.
+
+\textbf{C.} Nie jest, wystarczy rozejrzeć się po pozostałych zadaniach i w większości tak jest robione. Różnica polega na tym, że tak przedefiniowana metoda nie jest dziedziczona, tylko po prostu nadpisywana. Zauważmy też, że nagłówek w klasie bazowej i klasie dziedziczącej musi być ten sam w przypadku metody wirtualnej (w zadaniu mowa o metodzie niewirtualnej).
+
+% Julia
+\sol Dany jest kod w języku C++ w wersji 11:
+\begin{cpp}
+    #include <iostream>
+    
+    class A {
+    public:
+        virtual void m() { std::cout << "A\n"; }
+    };
+    
+    class B : public A {
+    public:
+        void m() override { std::cout << "B\n"; }
+    };
+    
+    int main() {
+        // tutaj wstawiamy kod
+    }
+\end{cpp}
+Na wyjście zostanie wypisana pojedyncza litera ,,A'' po wstawieniu do funkcji \cppinline{main()} kodu
+\answerss
+{\mintinline{cpp}{A a = new B(); a.m(); }}
+{\mintinline{cpp}{A* a { new B() }; a->m(); }}
+{\mintinline{cpp}{A a { B() }; a.m(); }}
+{NIE}{NIE}{TAK}
+
+\begin{enumerate}[\bf A.]
+    \item Ponieważ operator \cppinline{new} zwraca adres, nie możemy go przypisać na zmienną typu \texttt{A}, zatem kod ten w ogóle się nie skompiluje.
+
+    \item Zmienna $a$ będzie wskazywać na nowy obiekt typu \texttt{B}. Z zasad metod wirtualnych, metoda \texttt{m()} zostanie wywołana z klasy \texttt{B}.
+
+    \item Ze względu na to, że zmienna $a$ nie jest ani wskaźnikiem, ani referencją oraz ze względu na zasady metod wirtualnych, metoda \texttt{m()} zostanie wywołana z klasy \texttt{A}.
+\end{enumerate}
+
+% Julia
+\sol Dany jest program w C++:
+\begin{cpp}
+    #include <iostream>
+    
+    class A {
+    public :
+        virtual void g() {
+            std::cout << "A";
+        }
+    };
+    
+    class C : public A {
+    public :
+        void g() {
+            std::cout << "C";
+        }
+    };
+    
+    int main() {
+        A* p = new C(); 
+        p->g();
+    }
+\end{cpp}
+W podanym programie
+\answerss
+{inicjalizacja zmiennej \mintinline{cpp}{p} zostanie odrzucona przez kompilator}
+{wywołanie metody \mintinline{cpp}{p->g()} spowoduje wypisanie ,,C''}
+{wywołanie metody \mintinline{cpp}{p->g()} spowoduje wypisanie ,,AC''}
+{NIE}{TAK}{NIE}
+
+\begin{enumerate}
+    \item Operator \cppinline{new} zwraca adres nowo zaalokowanej pamięci dla danego obiektu. Przypisanie wskaźnikowi pewnego adresu jest w pełni poprawne, zatem kompilator nie wypisze żadnego błędu.
+
+    \item Ze względu na zasady metod wirtualnych, funkcja \texttt{g()} zostanie wywołana z klasy \texttt{C}, wypisując ,,C''.
+
+    \item Patrz: podpunkt \textbf{B.}
+\end{enumerate}
+\end{solutions}
