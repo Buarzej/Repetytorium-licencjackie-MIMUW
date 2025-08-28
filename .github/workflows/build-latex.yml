@@ -1,0 +1,45 @@
+name: Rebuild LaTeX document to pdf
+
+# Controls when the action will run.
+# This workflow runs on pushes to the 'main' branch.
+on:
+  push:
+    branches: [ "main" ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build_latex:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # 1. Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Set up Git repository
+        uses: actions/checkout@v4
+
+      # 2. Compiles the LaTeX file
+      # This uses a popular and robust GitHub Action for LaTeX.
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          # The root file to compile.
+          root_file: main.tex
+          # The compiler to use. latexmk is recommended.
+          compiler: latexmk
+          # Arguments to pass to the compiler.
+          # -pdf tells latexmk to generate a PDF.
+          # -shell-escape allows for packages like 'minted' to run external commands.
+          # -interaction=nonstopmode prevents the build from pausing on errors.
+          args: -pdf -shell-escape -interaction=nonstopmode
+
+      # 3. Uploads the generated PDF as an artifact
+      # You can find the artifact on the "Summary" page of the workflow run.
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          # The name of the artifact in the workflow summary.
+          name: PDF-Document
+          # The path to the file(s) to upload.
+          # This should match the name of your root_file with a .pdf extension.
+          path: "Repetytorium licencjackie.pdf"
